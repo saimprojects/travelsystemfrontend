@@ -23,6 +23,13 @@ import {
   Loader2,
   Printer,
   Hash,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Tag,
+  CreditCard,
+  FileText,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
@@ -35,6 +42,8 @@ const Bookings = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false); // New state for view modal
+  const [viewingBooking, setViewingBooking] = useState(null); // New state for booking to view
   const [editingBooking, setEditingBooking] = useState(null);
   const [paymentBooking, setPaymentBooking] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -276,6 +285,54 @@ const Bookings = () => {
       month: "short",
       year: "numeric",
     });
+  };
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "Not set";
+    return new Date(dateString).toLocaleString("en-PK", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "confirmed":
+      case "PAID":
+        return "bg-green-100 text-green-800";
+      case "pending":
+      case "HALF_PAID":
+        return "bg-amber-100 text-amber-800";
+      case "rejected":
+      case "UNPAID":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "confirmed":
+      case "PAID":
+        return <CheckCircle className="w-4 h-4 mr-1" />;
+      case "pending":
+      case "HALF_PAID":
+        return <Clock className="w-4 h-4 mr-1" />;
+      case "rejected":
+      case "UNPAID":
+        return <XCircle className="w-4 h-4 mr-1" />;
+      default:
+        return null;
+    }
+  };
+
+  const openViewModal = (booking) => {
+    setViewingBooking(booking);
+    setShowViewModal(true);
   };
 
   const generateInvoiceData = (booking) => {
@@ -1676,13 +1733,13 @@ const Bookings = () => {
                           <Printer className="w-4 h-4" />
                         </button>
 
-                        <Link
-                          to={`/bookings/${booking.id}`}
+                        <button
+                          onClick={() => openViewModal(booking)}
                           className="p-1.5 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200"
                           title="View Details"
                         >
                           <Eye className="w-4 h-4" />
-                        </Link>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -2169,6 +2226,315 @@ const Bookings = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Booking Details Modal */}
+      {showViewModal && viewingBooking && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity animate-in fade-in duration-200"></div>
+
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-4xl animate-in slide-in-from-bottom-4 duration-300">
+              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Eye className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Booking Details
+                    </h2>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Booking #{viewingBooking.id} • View Only
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => printInvoice(viewingBooking)}
+                    className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200"
+                    title="Print Invoice"
+                  >
+                    <Printer className="w-4 h-4 mr-2" />
+                    Print Invoice
+                  </button>
+                  <button
+                    onClick={() => setShowViewModal(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Header Info */}
+                <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-blue-900">
+                        {viewingBooking.service_details?.service_name || "Service"}
+                      </h3>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Created on {formatDateTime(viewingBooking.created_at)}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(viewingBooking.booking_status)}`}>
+                        {getStatusIcon(viewingBooking.booking_status)}
+                        {viewingBooking.booking_status_display}
+                      </span>
+                      <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(viewingBooking.payment_status)}`}>
+                        {getStatusIcon(viewingBooking.payment_status)}
+                        {viewingBooking.payment_status_display}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Client Details */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <User className="w-5 h-5 mr-2 text-blue-600" />
+                      Client Information
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex items-start">
+                        <User className="w-5 h-5 text-gray-400 mr-3 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Client Name</p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {viewingBooking.client_details?.name || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start">
+                        <Phone className="w-5 h-5 text-gray-400 mr-3 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Phone Number</p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {viewingBooking.client_details?.phone_number || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                      {viewingBooking.client_details?.email && (
+                        <div className="flex items-start">
+                          <Mail className="w-5 h-5 text-gray-400 mr-3 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-500">Email Address</p>
+                            <p className="text-base font-semibold text-gray-900">
+                              {viewingBooking.client_details.email}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {viewingBooking.client_details?.address && (
+                        <div className="flex items-start">
+                          <MapPin className="w-5 h-5 text-gray-400 mr-3 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-500">Address</p>
+                            <p className="text-base font-semibold text-gray-900">
+                              {viewingBooking.client_details.address}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Service Details */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <Briefcase className="w-5 h-5 mr-2 text-green-600" />
+                      Service Information
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Service Name</p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {viewingBooking.service_details?.service_name || "N/A"}
+                        </p>
+                        {viewingBooking.service_details?.description && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            {viewingBooking.service_details.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Service Category</p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {viewingBooking.service_details?.service_category || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Service Type</p>
+                          <p className="text-base font-semibold text-gray-900">
+                            {viewingBooking.service_details?.service_type || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dates Information */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <Calendar className="w-5 h-5 mr-2 text-amber-600" />
+                      Travel Dates
+                    </h3>
+                    <div className="space-y-4">
+                      <div className={`p-4 rounded-lg ${!viewingBooking.departure_date ? 'bg-red-50 border border-red-200' : 'bg-blue-50 border border-blue-200'}`}>
+                        <div className="flex items-center">
+                          <Calendar className="w-5 h-5 text-blue-600 mr-3" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Departure Date</p>
+                            <p className={`text-lg font-bold ${!viewingBooking.departure_date ? 'text-red-700' : 'text-blue-900'}`}>
+                              {viewingBooking.departure_date ? formatDate(viewingBooking.departure_date) : "Not Set"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className={`p-4 rounded-lg ${!viewingBooking.arrival_date ? 'bg-red-50 border border-red-200' : 'bg-green-50 border border-green-200'}`}>
+                        <div className="flex items-center">
+                          <Calendar className="w-5 h-5 text-green-600 mr-3" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Arrival Date</p>
+                            <p className={`text-lg font-bold ${!viewingBooking.arrival_date ? 'text-red-700' : 'text-green-900'}`}>
+                              {viewingBooking.arrival_date ? formatDate(viewingBooking.arrival_date) : "Not Set"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      {(!viewingBooking.departure_date || !viewingBooking.arrival_date) && (
+                        <div className="flex items-center text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+                          <AlertCircle className="w-4 h-4 mr-2" />
+                          <span>Missing travel dates. Please update the booking.</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Financial Information */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <DollarSign className="w-5 h-5 mr-2 text-green-600" />
+                      Financial Details
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-gray-50 p-3 rounded-lg">
+                          <p className="text-sm font-medium text-gray-500">Total Amount</p>
+                          <p className="text-xl font-bold text-gray-900">
+                            {formatPKR(viewingBooking.total_amount)}
+                          </p>
+                        </div>
+                        <div className="bg-gray-50 p-3 rounded-lg">
+                          <p className="text-sm font-medium text-gray-500">Discount</p>
+                          <p className="text-lg font-bold text-red-600">
+                            -{formatPKR(viewingBooking.discount)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">Net Amount</p>
+                            <p className="text-2xl font-bold text-blue-900">
+                              {formatPKR(viewingBooking.total_amount - viewingBooking.discount)}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-gray-700">Payment Status</p>
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(viewingBooking.payment_status)}`}>
+                              {viewingBooking.payment_status_display}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                          <span className="text-sm font-medium text-gray-700">Amount Paid</span>
+                          <span className="text-lg font-bold text-green-700">
+                            {formatPKR(viewingBooking.paid_amount)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+                          <span className="text-sm font-medium text-gray-700">Remaining Due</span>
+                          <span className="text-lg font-bold text-red-700">
+                            {formatPKR(viewingBooking.remaining_amount)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Payment Information */}
+                <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <CreditCard className="w-5 h-5 mr-2 text-purple-600" />
+                    Payment Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-sm font-medium text-gray-500 mb-2">Payment Method</p>
+                      <p className="text-base font-semibold text-gray-900">
+                        {viewingBooking.payment_method || "Not Specified"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500 mb-2">Last Updated</p>
+                      <p className="text-base font-semibold text-gray-900">
+                        {viewingBooking.updated_at ? formatDateTime(viewingBooking.updated_at) : "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                  {viewingBooking.notes && (
+                    <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                      <div className="flex items-start">
+                        <FileText className="w-5 h-5 text-amber-600 mr-3 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-700 mb-1">Additional Notes</p>
+                          <p className="text-sm text-gray-900">{viewingBooking.notes}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100">
+                  <button
+                    onClick={() => openEditModal(viewingBooking)}
+                    className="flex items-center px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Booking
+                  </button>
+                  <button
+                    onClick={() => {
+                      openPaymentModal(viewingBooking);
+                      setShowViewModal(false);
+                    }}
+                    className="flex items-center px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                  >
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    Update Payment
+                  </button>
+                  <button
+                    onClick={() => setShowViewModal(false)}
+                    className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
