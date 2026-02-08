@@ -2365,20 +2365,6 @@ const Bookings = () => {
                           </p>
                         )}
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Service Category</p>
-                          <p className="text-base font-semibold text-gray-900">
-                            {viewingBooking.service_details?.service_category || "N/A"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Service Type</p>
-                          <p className="text-base font-semibold text-gray-900">
-                            {viewingBooking.service_details?.service_type || "N/A"}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   </div>
 
@@ -2495,14 +2481,7 @@ const Bookings = () => {
                       </p>
                     </div>
                   </div>
-                  {viewingBooking.notes && (
-                    <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
-                      <div className="flex items-start">
-                        <FileText className="w-5 h-5 text-amber-600 mr-3 mt-0.5" />
-                     
-                      </div>
-                    </div>
-                  )}
+                 
                 </div>
 
                 {/* Actions */}
