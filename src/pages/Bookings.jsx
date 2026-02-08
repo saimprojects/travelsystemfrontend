@@ -2499,10 +2499,7 @@ const Bookings = () => {
                     <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
                       <div className="flex items-start">
                         <FileText className="w-5 h-5 text-amber-600 mr-3 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-1">Additional Notes</p>
-                          <p className="text-sm text-gray-900">{viewingBooking.notes}</p>
-                        </div>
+                     
                       </div>
                     </div>
                   )}
@@ -2645,21 +2642,6 @@ const Bookings = () => {
                     <option value="EasyPaisa">EasyPaisa</option>
                     <option value="Other">Other</option>
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Payment Notes
-                  </label>
-                  <textarea
-                    value={paymentData.notes}
-                    onChange={(e) =>
-                      setPaymentData({ ...paymentData, notes: e.target.value })
-                    }
-                    rows="2"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                    placeholder="Payment reference or notes..."
-                  />
                 </div>
 
                 <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100">
