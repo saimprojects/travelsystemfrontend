@@ -47,6 +47,12 @@ const Bookings = () => {
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [printingBooking, setPrintingBooking] = useState(null);
+  
+  // New states for dropdown search
+  const [clientSearch, setClientSearch] = useState("");
+  const [serviceSearch, setServiceSearch] = useState("");
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const [showServiceDropdown, setShowServiceDropdown] = useState(false);
 
   const searchInputRef = useRef(null);
   const bookingIdInputRef = useRef(null);
@@ -66,7 +72,6 @@ const Bookings = () => {
     payment_method: "",
     arrival_date: "",
     departure_date: "",
-    notes: "",
   });
 
   const [paymentData, setPaymentData] = useState({
@@ -74,6 +79,20 @@ const Bookings = () => {
     payment_method: "",
     notes: "",
   });
+
+  // Filtered lists for dropdowns
+  const filteredClients = clients.filter(client => 
+    clientSearch === "" || 
+    client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
+    (client.phone_number && client.phone_number.includes(clientSearch))
+  );
+
+  const filteredServices = services
+    .filter(s => s.status === "active")
+    .filter(service => 
+      serviceSearch === "" || 
+      service.service_name.toLowerCase().includes(serviceSearch.toLowerCase())
+    );
 
   // Initial data fetch (without any search)
   useEffect(() => {
@@ -87,10 +106,25 @@ const Bookings = () => {
     }
   }, [searchQuery, bookingIdQuery, missingOnly]);
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showClientDropdown || showServiceDropdown) {
+        setShowClientDropdown(false);
+        setShowServiceDropdown(false);
+        setClientSearch("");
+        setServiceSearch("");
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showClientDropdown, showServiceDropdown]);
+
   const fetchInitialData = async () => {
     try {
       setLoading(true);
-
+      
       // Fetch main data in parallel
       const [bookingsRes, clientsRes, servicesRes, summaryRes] =
         await Promise.all([
@@ -157,6 +191,7 @@ const Bookings = () => {
 
       const bookingsRes = await bookingsAPI.getBookings(bookingsParams);
       setBookings(bookingsRes.data.results || bookingsRes.data || []);
+      
     } catch (error) {
       console.error("❌ Error searching bookings:", error);
       toast.error("Failed to search bookings", { duration: 3000 });
@@ -246,12 +281,8 @@ const Bookings = () => {
   const generateInvoiceData = (booking) => {
     const client = clients.find((c) => c.id === booking.client);
     const service = services.find((s) => s.id === booking.service);
-
-    const originalPrice =
-      service?.service_total_price ||
-      booking.service_details?.service_total_price ||
-      booking.total_amount ||
-      0;
+    
+    const originalPrice = service?.service_total_price || booking.service_details?.service_total_price || booking.total_amount || 0;
     const discount = booking.discount || 0;
     const finalPrice = originalPrice - discount;
     const paid = booking.paid_amount || 0;
@@ -263,8 +294,7 @@ const Bookings = () => {
       invoiceDate: formatInvoiceDate(booking.created_at),
 
       clientName: client?.name || booking.client_details?.name || "N/A",
-      clientPhone:
-        client?.phone_number || booking.client_details?.phone_number || "",
+      clientPhone: client?.phone_number || booking.client_details?.phone_number || "",
       clientAltPhone: client?.alternative_phone_number || "",
       clientEmail: client?.email || "",
       clientAddress: client?.address || "",
@@ -274,17 +304,12 @@ const Bookings = () => {
       agencyEmail: agency?.email || "",
       agencyAddress: agency?.address || "",
 
-      serviceName:
-        service?.service_name || booking.service_details?.service_name || "N/A",
+      serviceName: service?.service_name || booking.service_details?.service_name || "N/A",
       serviceQty: 1,
       servicePrice: originalPrice,
 
-      paymentStatus:
-        booking.payment_status === "PAID"
-          ? "PAID"
-          : booking.payment_status === "HALF_PAID"
-            ? "HALF PAID"
-            : "PENDING",
+      paymentStatus: booking.payment_status === "PAID" ? "PAID" : 
+                    booking.payment_status === "HALF_PAID" ? "HALF PAID" : "PENDING",
 
       departureDate: formatInvoiceDate(booking.departure_date),
       arrivalDate: formatInvoiceDate(booking.arrival_date),
@@ -295,7 +320,7 @@ const Bookings = () => {
       paidAmount: paid,
       remainingAmount: remaining,
 
-      additionalServices: [],
+      additionalServices: []
     };
   };
 
@@ -1049,11 +1074,6 @@ const Bookings = () => {
     payload.departure_date = payload.departure_date || null;
     payload.payment_method = payload.payment_method?.trim() || null;
 
-    payload.notes =
-      typeof payload.notes === "string"
-        ? payload.notes.trim()
-        : payload.notes || null;
-
     return payload;
   };
 
@@ -1076,18 +1096,10 @@ const Bookings = () => {
     if (formData.arrival_date && formData.departure_date) {
       const departure = new Date(formData.departure_date);
       const arrival = new Date(formData.arrival_date);
-
-      const departureDate = new Date(
-        departure.getFullYear(),
-        departure.getMonth(),
-        departure.getDate(),
-      );
-      const arrivalDate = new Date(
-        arrival.getFullYear(),
-        arrival.getMonth(),
-        arrival.getDate(),
-      );
-
+      
+      const departureDate = new Date(departure.getFullYear(), departure.getMonth(), departure.getDate());
+      const arrivalDate = new Date(arrival.getFullYear(), arrival.getMonth(), arrival.getDate());
+      
       if (arrivalDate < departureDate) {
         errors.arrival_date = "Return date cannot be before travel date";
       }
@@ -1177,7 +1189,6 @@ const Bookings = () => {
       payment_method: booking.payment_method || "",
       arrival_date: booking.arrival_date || "",
       departure_date: booking.departure_date || "",
-      notes: booking.notes || "",
     });
     setFormErrors({});
     setShowModal(true);
@@ -1203,11 +1214,14 @@ const Bookings = () => {
       payment_method: "",
       arrival_date: "",
       departure_date: "",
-      notes: "",
     });
     setFormErrors({});
     setEditingBooking(null);
     setSubmitting(false);
+    setClientSearch("");
+    setServiceSearch("");
+    setShowClientDropdown(false);
+    setShowServiceDropdown(false);
   };
 
   const getMaxDiscount = () => {
@@ -1755,116 +1769,217 @@ const Bookings = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Client *
-                  </label>
+                {/* Client and Service with Searchable Dropdowns */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Client Dropdown with Search */}
                   <div className="relative">
-                    <input
-                      list="clients-list"
-                      value={
-                        formData.client
-                          ? clients.find(
-                              (c) => c.id === parseInt(formData.client),
-                            )?.name || ""
-                          : ""
-                      }
-                      onChange={(e) => {
-                        const selectedClient = clients.find((c) =>
-                          c.name
-                            .toLowerCase()
-                            .includes(e.target.value.toLowerCase()),
-                        );
-                        setFormData({
-                          ...formData,
-                          client: selectedClient ? selectedClient.id : "",
-                        });
-                        if (formErrors.client)
-                          setFormErrors({ ...formErrors, client: "" });
-                      }}
-                      onFocus={(e) => e.target.select()}
-                      placeholder="Type client name or phone to search..."
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
-                        formErrors.client ? "border-red-300" : "border-gray-300"
-                      }`}
-                    />
-                    <datalist id="clients-list">
-                      {clients.map((client) => (
-                        <option
-                          key={client.id}
-                          value={`${client.name} • ${client.phone_number}`}
-                        >
-                          {client.name} • {client.phone_number}
-                        </option>
-                      ))}
-                    </datalist>
-                    <div className="absolute right-3 top-3 text-gray-400">
-                      <Search className="w-4 h-4" />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Client *
+                    </label>
+                    
+                    <div className="relative">
+                      <div 
+                        className={`flex items-center justify-between w-full px-4 py-3 border rounded-lg cursor-pointer transition-colors duration-200 ${
+                          formErrors.client ? "border-red-300" : "border-gray-300"
+                        } ${showClientDropdown ? "ring-2 ring-blue-500 border-blue-500" : ""}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowClientDropdown(!showClientDropdown);
+                          setShowServiceDropdown(false);
+                        }}
+                      >
+                        <div className="flex-1 truncate">
+                          {formData.client ? (
+                            clients.find(c => c.id === parseInt(formData.client))?.name || "Select Client"
+                          ) : (
+                            <span className="text-gray-400">Select Client</span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2 ml-2">
+                          <Search className="w-4 h-4 text-gray-400" />
+                          <svg 
+                            className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showClientDropdown ? "rotate-180" : ""}`}
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
+                      
+                      {showClientDropdown && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                          onClick={(e) => e.stopPropagation()}>
+                          {/* Search Input */}
+                          <div className="sticky top-0 bg-white p-2 border-b">
+                            <div className="relative">
+                              <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                              <input
+                                type="text"
+                                value={clientSearch}
+                                onChange={(e) => setClientSearch(e.target.value)}
+                                onClick={(e) => e.stopPropagation()}
+                                placeholder="Search client by name or phone..."
+                                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                autoFocus
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Clients List */}
+                          <div className="py-1">
+                            {filteredClients.length > 0 ? (
+                              filteredClients.map((client) => (
+                                <div
+                                  key={client.id}
+                                  className={`px-4 py-3 cursor-pointer hover:bg-blue-50 transition-colors ${
+                                    formData.client === client.id.toString() ? "bg-blue-50 text-blue-700" : ""
+                                  }`}
+                                  onClick={() => {
+                                    setFormData({ ...formData, client: client.id.toString() });
+                                    setShowClientDropdown(false);
+                                    setClientSearch("");
+                                    if (formErrors.client) {
+                                      setFormErrors({ ...formErrors, client: "" });
+                                    }
+                                  }}
+                                >
+                                  <div className="font-medium">{client.name}</div>
+                                  <div className="text-sm text-gray-500">{client.phone_number}</div>
+                                  {client.email && (
+                                    <div className="text-xs text-gray-400 truncate">{client.email}</div>
+                                  )}
+                                </div>
+                              ))
+                            ) : (
+                              <div className="px-4 py-3 text-center text-gray-500">
+                                No clients found
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
+                    
+                    {formErrors.client && (
+                      <p className="mt-1 text-sm text-red-600 flex items-center">
+                        <AlertCircle className="w-3 h-3 mr-1" />
+                        {formErrors.client}
+                      </p>
+                    )}
                   </div>
-                  {formErrors.client && (
-                    <p className="mt-1 text-sm text-red-600 flex items-center">
-                      <AlertCircle className="w-3 h-3 mr-1" />
-                      {formErrors.client}
-                    </p>
-                  )}
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Service *
-                  </label>
+                  {/* Service Dropdown with Search */}
                   <div className="relative">
-                    <input
-                      list="services-list"
-                      value={
-                        formData.service
-                          ? services.find(
-                              (s) => s.id === parseInt(formData.service),
-                            )?.service_name || ""
-                          : ""
-                      }
-                      onChange={(e) => {
-                        const selectedService = services.find((s) =>
-                          s.service_name
-                            .toLowerCase()
-                            .includes(e.target.value.toLowerCase()),
-                        );
-                        setFormData({
-                          ...formData,
-                          service: selectedService ? selectedService.id : "",
-                        });
-                        if (formErrors.service)
-                          setFormErrors({ ...formErrors, service: "" });
-                      }}
-                      onFocus={(e) => e.target.select()}
-                      placeholder="Type service name to search..."
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
-                        formErrors.service
-                          ? "border-red-300"
-                          : "border-gray-300"
-                      }`}
-                    />
-                    <datalist id="services-list">
-                      {services
-                        .filter((s) => s.status === "active")
-                        .map((service) => (
-                          <option key={service.id} value={service.service_name}>
-                            {service.service_name} •{" "}
-                            {formatPKR(service.service_total_price)}
-                          </option>
-                        ))}
-                    </datalist>
-                    <div className="absolute right-3 top-3 text-gray-400">
-                      <Search className="w-4 h-4" />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Service *
+                    </label>
+                    
+                    <div className="relative">
+                      <div 
+                        className={`flex items-center justify-between w-full px-4 py-3 border rounded-lg cursor-pointer transition-colors duration-200 ${
+                          formErrors.service ? "border-red-300" : "border-gray-300"
+                        } ${showServiceDropdown ? "ring-2 ring-blue-500 border-blue-500" : ""}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowServiceDropdown(!showServiceDropdown);
+                          setShowClientDropdown(false);
+                        }}
+                      >
+                        <div className="flex-1 truncate">
+                          {formData.service ? (
+                            <div className="flex justify-between items-center">
+                              <span>{services.find(s => s.id === parseInt(formData.service))?.service_name || "Select Service"}</span>
+                              <span className="text-sm font-semibold text-blue-600 ml-2">
+                                {services.find(s => s.id === parseInt(formData.service)) && 
+                                  formatPKR(services.find(s => s.id === parseInt(formData.service)).service_total_price)}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">Select Service</span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2 ml-2">
+                          <Search className="w-4 h-4 text-gray-400" />
+                          <svg 
+                            className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showServiceDropdown ? "rotate-180" : ""}`}
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
+                      
+                      {showServiceDropdown && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                          onClick={(e) => e.stopPropagation()}>
+                          {/* Search Input */}
+                          <div className="sticky top-0 bg-white p-2 border-b">
+                            <div className="relative">
+                              <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                              <input
+                                type="text"
+                                value={serviceSearch}
+                                onChange={(e) => setServiceSearch(e.target.value)}
+                                onClick={(e) => e.stopPropagation()}
+                                placeholder="Search service by name..."
+                                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                autoFocus
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Services List */}
+                          <div className="py-1">
+                            {filteredServices.length > 0 ? (
+                              filteredServices.map((service) => (
+                                <div
+                                  key={service.id}
+                                  className={`px-4 py-3 cursor-pointer hover:bg-blue-50 transition-colors ${
+                                    formData.service === service.id.toString() ? "bg-blue-50 text-blue-700" : ""
+                                  }`}
+                                  onClick={() => {
+                                    setFormData({ ...formData, service: service.id.toString() });
+                                    setShowServiceDropdown(false);
+                                    setServiceSearch("");
+                                    if (formErrors.service) {
+                                      setFormErrors({ ...formErrors, service: "" });
+                                    }
+                                  }}
+                                >
+                                  <div className="flex justify-between items-center">
+                                    <div className="font-medium">{service.service_name}</div>
+                                    <div className="font-semibold text-blue-600">
+                                      {formatPKR(service.service_total_price)}
+                                    </div>
+                                  </div>
+                                  {service.description && (
+                                    <div className="text-xs text-gray-500 mt-1 truncate">
+                                      {service.description}
+                                    </div>
+                                  )}
+                                </div>
+                              ))
+                            ) : (
+                              <div className="px-4 py-3 text-center text-gray-500">
+                                No services found
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
+                    
+                    {formErrors.service && (
+                      <p className="mt-1 text-sm text-red-600 flex items-center">
+                        <AlertCircle className="w-3 h-3 mr-1" />
+                        {formErrors.service}
+                      </p>
+                    )}
                   </div>
-                  {formErrors.service && (
-                    <p className="mt-1 text-sm text-red-600 flex items-center">
-                      <AlertCircle className="w-3 h-3 mr-1" />
-                      {formErrors.service}
-                    </p>
-                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2023,21 +2138,6 @@ const Bookings = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Additional Notes
-                  </label>
-                  <textarea
-                    value={formData.notes}
-                    onChange={(e) =>
-                      setFormData({ ...formData, notes: e.target.value })
-                    }
-                    rows="3"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                    placeholder="Any special instructions or notes..."
-                  />
-                </div>
-
                 <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100">
                   <button
                     type="button"
@@ -2160,7 +2260,16 @@ const Bookings = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Payment Method
                   </label>
-                  <select>
+                  <select
+                    value={paymentData.payment_method}
+                    onChange={(e) =>
+                      setPaymentData({
+                        ...paymentData,
+                        payment_method: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                  >
                     <option value="">Select Method</option>
                     <option value="Cash">Cash</option>
                     <option value="Credit Card">Credit Card</option>
