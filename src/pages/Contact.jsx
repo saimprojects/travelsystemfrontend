@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { 
   Mail, Phone, MapPin, Globe, 
   Send, CheckCircle, AlertCircle,
-  Facebook, Twitter, Linkedin
+  Facebook, Twitter, Linkedin, User
 } from 'lucide-react';
 
 const Contact = () => {
@@ -29,22 +29,67 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    // FormSubmit.co configuration
+    const formEndpoint = 'https://formsubmit.co/ajax/saimpkf@gmail.com';
     
-    // Simulate form submission
-    setTimeout(() => {
+    // Prepare data with proper formatting
+    const formDataToSend = {
+      _subject: `Contact Form: ${formData.subject}`,
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone || 'Not provided',
+      subject: formData.subject,
+      message: formData.message,
+      _template: 'table',
+      _captcha: 'false',
+      _next: window.location.href
+    };
+
+    try {
+      const response = await fetch(formEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(formDataToSend)
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setSubmitStatus({
+          type: 'success',
+          message: 'Thank you for contacting us! We will get back to you soon.'
+        });
+        
+        // Reset form after 2 seconds
+        setTimeout(() => {
+          setFormData({
+            name: '',
+            email: '',
+            phone: '',
+            subject: '',
+            message: ''
+          });
+        }, 2000);
+      } else {
+        setSubmitStatus({
+          type: 'error',
+          message: 'Something went wrong. Please try again.'
+        });
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
       setSubmitStatus({
-        type: 'success',
-        message: 'Thank you for contacting us! We will get back to you soon.'
+        type: 'error',
+        message: 'Network error. Please check your connection.'
       });
+    } finally {
       setIsSubmitting(false);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: ''
-      });
-    }, 1500);
+    }
   };
 
   return (
@@ -135,36 +180,53 @@ const Contact = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form 
+              action="https://formsubmit.co/saimpkf@gmail.com" 
+              method="POST"
+              onSubmit={handleSubmit}
+              className="space-y-6"
+            >
+              {/* FormSubmit.co Hidden Fields */}
+              <input type="hidden" name="_template" value="table" />
+              <input type="hidden" name="_captcha" value="false" />
+              <input type="hidden" name="_next" value={window.location.href} />
+              <input type="hidden" name="_subject" value="New Contact Form Submission - TAM" />
+              
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Your Name *
                   </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter your name"
-                  />
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter your name"
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Your Email *
                   </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter your email"
-                  />
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter your email"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -172,14 +234,17 @@ const Contact = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Phone Number
                 </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter your phone number"
-                />
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter your phone number (optional)"
+                  />
+                </div>
               </div>
 
               <div>

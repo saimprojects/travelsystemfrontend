@@ -1,8 +1,8 @@
 // components/RegisterPopup.jsx
 import React, { useState, useEffect } from 'react';
 import { 
-  User, Building2, Phone, Mail, Lock, 
-  Eye, EyeOff, CheckCircle, AlertCircle, X,
+  User, Building2, Phone, Mail, 
+  CheckCircle, AlertCircle, X,
   Smartphone, Calendar, Zap, Award
 } from 'lucide-react';
 
@@ -13,13 +13,9 @@ const RegisterPopup = ({ isOpen, onClose }) => {
     whatsappNumber: '',
     phoneNumber: '',
     package: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    email: ''
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
   const [errors, setErrors] = useState({});
@@ -96,16 +92,6 @@ const RegisterPopup = ({ isOpen, onClose }) => {
       newErrors.email = 'Invalid email format';
     }
 
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -133,10 +119,9 @@ const RegisterPopup = ({ isOpen, onClose }) => {
       selected_package: getPackageDetails(formData.package),
       package_type: formData.package,
       email: formData.email,
-      password: '[PROTECTED]', // Don't send actual password
       _template: 'table',
       _captcha: 'false',
-      _next: window.location.href // Redirect back after submission
+      _next: window.location.href
     };
 
     try {
@@ -165,9 +150,7 @@ const RegisterPopup = ({ isOpen, onClose }) => {
             whatsappNumber: '',
             phoneNumber: '',
             package: '',
-            email: '',
-            password: '',
-            confirmPassword: ''
+            email: ''
           });
           onClose();
         }, 2000);
@@ -307,7 +290,7 @@ const RegisterPopup = ({ isOpen, onClose }) => {
                   </div>
                 )}
 
-                {/* Package Selection - Horizontal Scroll on Mobile */}
+                {/* Package Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Select Package <span className="text-red-500">*</span>
@@ -327,6 +310,7 @@ const RegisterPopup = ({ isOpen, onClose }) => {
                           checked={formData.package === pkg.id}
                           onChange={handleChange}
                           className="hidden"
+                          required
                         />
                         <div className={`p-3 rounded-lg border-2 ${
                           formData.package === pkg.id
@@ -473,68 +457,6 @@ const RegisterPopup = ({ isOpen, onClose }) => {
                     </div>
                     {errors.email && (
                       <p className="mt-1 text-xs text-red-500">{errors.email}</p>
-                    )}
-                  </div>
-
-                  {/* Password */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Password <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        className={`w-full pl-9 pr-9 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.password ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        placeholder="Minimum 6 characters"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                    {errors.password && (
-                      <p className="mt-1 text-xs text-red-500">{errors.password}</p>
-                    )}
-                  </div>
-
-                  {/* Confirm Password */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Confirm Password <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <input
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        className={`w-full pl-9 pr-9 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        placeholder="Re-enter password"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      >
-                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                    {errors.confirmPassword && (
-                      <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>
                     )}
                   </div>
                 </div>
