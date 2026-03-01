@@ -1,13 +1,13 @@
-// HomePage.jsx (Updated Version)
+// HomePage.jsx - Complete Fixed Version with All Sections
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Menu, X, CheckCircle, Users, 
   BarChart3, Shield, Globe, Clock,
   DollarSign, FileText, Settings, 
-  TrendingUp, Star
+  TrendingUp, Star, ArrowRight
 } from 'lucide-react';
-import RegisterPopup from '../components/RegisterPopup'; // Import the popup
+import RegisterPopup from '../components/RegisterPopup';
 
 const HomePage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -119,7 +119,6 @@ const HomePage = () => {
               
               {/* CTA Buttons */}
               <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                {/* Register Button in Hero - Opens Popup */}
                 <button 
                   onClick={() => setIsRegisterPopupOpen(true)}
                   className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition text-center"
@@ -200,7 +199,7 @@ const HomePage = () => {
             TAM solves all of this with one centralized system.
           </p>
 
-          {/* Add Register Button after Problem Section */}
+          {/* Register Button after Problem Section */}
           <div className="mt-8 text-center">
             <button
               onClick={() => setIsRegisterPopupOpen(true)}
