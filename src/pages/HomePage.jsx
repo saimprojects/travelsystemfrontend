@@ -7,7 +7,7 @@ import {
   DollarSign, FileText, Settings, 
   TrendingUp, Star
 } from 'lucide-react';
-import RegisterPopup from './components/RegisterPopup'; // Import the popup
+import RegisterPopup from '../components/RegisterPopup'; // Import the popup
 
 const HomePage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
