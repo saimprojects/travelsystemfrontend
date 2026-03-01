@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
+import HomePage from './pages/HomePage'; // Import HomePage
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Services from './pages/Services';
@@ -18,18 +19,20 @@ function App() {
       <Router>
         <Toaster position="top-right" />
         <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
           
+          {/* Protected Routes */}
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <Layout />
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
+            <Route index element={<Dashboard />} />
             
             <Route
               path="settings"
@@ -86,7 +89,8 @@ function App() {
             />
           </Route>
           
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* Catch all route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     </AuthProvider>

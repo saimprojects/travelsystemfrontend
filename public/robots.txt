@@ -1,0 +1,54 @@
+# robots.txt for TAM - Travel Agency Management System
+# https://tam.minorgroup.site
+
+# Allow all crawlers full access
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://tam.minorgroup.site/sitemap.xml
+
+# Crawl delay for all bots (optional)
+Crawl-delay: 10
+
+# Disallow access to private areas
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /admin/
+Disallow: /private/
+Disallow: /temp/
+
+# Specific bot rules (optional)
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 5
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: bingbot
+Allow: /
+Crawl-delay: 5
+
+# Social media crawlers for link previews
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+# Block known bad bots (optional - uncomment if needed)
+# User-agent: MJ12bot
+# Disallow: /
+# 
+# User-agent: AhrefsBot
+# Disallow: /
+# 
+# User-agent: SemrushBot
+# Disallow: /
