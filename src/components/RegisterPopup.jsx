@@ -120,23 +120,38 @@ const RegisterPopup = ({ isOpen, onClose }) => {
     setIsSubmitting(true);
     setSubmitStatus(null);
 
-    const formspreeData = {
-      ...formData,
+    // FormSubmit.co configuration
+    const formEndpoint = 'https://formsubmit.co/ajax/saimpkf@gmail.com';
+    
+    // Prepare data with proper formatting
+    const formDataToSend = {
       _subject: `New Agency Registration: ${formData.agencyName}`,
-      package_details: getPackageDetails(formData.package)
+      name: formData.yourName,
+      agency_name: formData.agencyName,
+      whatsapp_number: formData.whatsappNumber,
+      phone_number: formData.phoneNumber || formData.whatsappNumber,
+      selected_package: getPackageDetails(formData.package),
+      package_type: formData.package,
+      email: formData.email,
+      password: '[PROTECTED]', // Don't send actual password
+      _template: 'table',
+      _captcha: 'false',
+      _next: window.location.href // Redirect back after submission
     };
 
     try {
-      const response = await fetch('https://formspree.io/f/meelwlgv', {
+      const response = await fetch(formEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify(formspreeData)
+        body: JSON.stringify(formDataToSend)
       });
 
-      if (response.ok) {
+      const result = await response.json();
+
+      if (response.ok && result.success) {
         setSubmitStatus({
           type: 'success',
           message: 'Registration successful! We will contact you soon.'
@@ -163,6 +178,7 @@ const RegisterPopup = ({ isOpen, onClose }) => {
         });
       }
     } catch (error) {
+      console.error('Form submission error:', error);
       setSubmitStatus({
         type: 'error',
         message: 'Network error. Please check your connection.'
@@ -261,7 +277,18 @@ const RegisterPopup = ({ isOpen, onClose }) => {
 
             {/* Form Content */}
             <div className="p-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form 
+                action="https://formsubmit.co/saimpkf@gmail.com" 
+                method="POST"
+                onSubmit={handleSubmit}
+                className="space-y-6"
+              >
+                {/* FormSubmit.co Hidden Fields */}
+                <input type="hidden" name="_template" value="table" />
+                <input type="hidden" name="_captcha" value="false" />
+                <input type="hidden" name="_next" value={window.location.href} />
+                <input type="hidden" name="_subject" value="New Agency Registration - TAM" />
+                
                 {/* Success/Error Message */}
                 {submitStatus && (
                   <div className={`p-4 rounded-lg ${
@@ -351,6 +378,7 @@ const RegisterPopup = ({ isOpen, onClose }) => {
                           errors.yourName ? 'border-red-500' : 'border-gray-300'
                         }`}
                         placeholder="Enter your full name"
+                        required
                       />
                     </div>
                     {errors.yourName && (
@@ -374,6 +402,7 @@ const RegisterPopup = ({ isOpen, onClose }) => {
                           errors.agencyName ? 'border-red-500' : 'border-gray-300'
                         }`}
                         placeholder="Enter agency name"
+                        required
                       />
                     </div>
                     {errors.agencyName && (
@@ -397,6 +426,7 @@ const RegisterPopup = ({ isOpen, onClose }) => {
                           errors.whatsappNumber ? 'border-red-500' : 'border-gray-300'
                         }`}
                         placeholder="e.g., +92 300 1234567"
+                        required
                       />
                     </div>
                     {errors.whatsappNumber && (
@@ -438,6 +468,7 @@ const RegisterPopup = ({ isOpen, onClose }) => {
                           errors.email ? 'border-red-500' : 'border-gray-300'
                         }`}
                         placeholder="Enter your email"
+                        required
                       />
                     </div>
                     {errors.email && (
@@ -461,6 +492,7 @@ const RegisterPopup = ({ isOpen, onClose }) => {
                           errors.password ? 'border-red-500' : 'border-gray-300'
                         }`}
                         placeholder="Minimum 6 characters"
+                        required
                       />
                       <button
                         type="button"
@@ -491,6 +523,7 @@ const RegisterPopup = ({ isOpen, onClose }) => {
                           errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
                         }`}
                         placeholder="Re-enter password"
+                        required
                       />
                       <button
                         type="button"
