@@ -32,6 +32,20 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem('user', JSON.stringify(profileResponse.data));
         } catch (error) {
           console.log('Session verification failed:', error.message);
+
+          const authFailed =
+            error.response?.status === 401 ||
+            error.response?.status === 403 ||
+            !localStorage.getItem('access_token');
+
+          if (authFailed) {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('agency_status');
+            setUser(null);
+            return;
+          }
           
           // Keep stored user for UI but mark as needing refresh
           if (storedUser) {
@@ -50,16 +64,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       console.log('🔐 Login attempt with:', email);
-      
-      let response;
-      
-      // Try with email first
-      try {
-        response = await authAPI.login({ email, password });
-      } catch (emailError) {
-        console.log('Email login failed, trying username');
-        response = await authAPI.login({ username: email, password });
-      }
+      const response = await authAPI.login({ email, password });
 
       console.log('✅ Login successful, storing tokens');
       
@@ -80,6 +85,10 @@ export const AuthProvider = ({ children }) => {
         userData = profileResponse.data;
         console.log('✅ Profile loaded:', userData);
       } catch (profileError) {
+        if (profileError.response?.status === 401 || profileError.response?.status === 403) {
+          throw profileError;
+        }
+
         console.log('⚠️ Profile fetch failed, creating basic profile');
         
         // Create basic user data from email
@@ -135,6 +144,8 @@ export const AuthProvider = ({ children }) => {
         errorMessage = errorDetail || 'Agency account is not active.';
       } else if (error.response?.status === 500) {
         errorMessage = 'Server error. Please try again later.';
+      } else if (error.displayMessage) {
+        errorMessage = error.displayMessage;
       } else if (!error.response) {
         errorMessage = 'Network error. Please check your connection.';
       } else {

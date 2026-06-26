@@ -43,7 +43,7 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config || {};
     
     // Log error
     console.error('❌ API Error:', {
@@ -58,7 +58,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       
       // Don't try to refresh token for login endpoint
-      if (originalRequest.url.includes('/auth/login/')) {
+      if (originalRequest.url?.includes('/auth/login/')) {
         return Promise.reject(error);
       }
 
@@ -75,6 +75,7 @@ api.interceptors.response.use(
             localStorage.setItem('access_token', refreshResponse.data.access);
             
             // Update the original request
+            originalRequest.headers = originalRequest.headers || {};
             originalRequest.headers.Authorization = `Bearer ${refreshResponse.data.access}`;
             console.log('✅ Token refreshed successfully');
             return api(originalRequest);
@@ -95,7 +96,8 @@ api.interceptors.response.use(
         window.location.href = '/login';
       }
       
-      return Promise.reject(new Error('Session expired. Please login again.'));
+      error.displayMessage = 'Session expired. Please login again.';
+      return Promise.reject(error);
     }
 
     // ✅ Handle 403 - Forbidden (don't auto-logout)
@@ -105,26 +107,29 @@ api.interceptors.response.use(
       // If it's an agency status error, pass it through
       if (errorData.detail?.includes('agency') || 
           errorData.detail?.includes('Agency') ||
-          originalRequest.url.includes('/agency/')) {
+          originalRequest.url?.includes('/agency/')) {
         console.log('🏢 Agency access issue - passing to component');
         return Promise.reject(error);
       }
       
       // For other 403 errors, show message but don't logout
       console.log('🚫 Access denied for:', originalRequest.url);
-      return Promise.reject(new Error('You do not have permission to access this resource.'));
+      error.displayMessage = 'You do not have permission to access this resource.';
+      return Promise.reject(error);
     }
 
     // ✅ Handle 500 - Server errors
     if (error.response?.status === 500) {
       console.error('🔥 Server error:', error.response.data);
-      return Promise.reject(new Error('Server error. Please try again later.'));
+      error.displayMessage = 'Server error. Please try again later.';
+      return Promise.reject(error);
     }
 
     // ✅ Handle network errors
     if (!error.response) {
       console.error('🌐 Network error:', error.message);
-      return Promise.reject(new Error('Network error. Please check your connection.'));
+      error.displayMessage = 'Network error. Please check your connection.';
+      return Promise.reject(error);
     }
 
     // ✅ Default error handling
@@ -134,7 +139,8 @@ api.interceptors.response.use(
                         error.message || 
                         'An error occurred';
     
-    return Promise.reject(new Error(errorMessage));
+    error.displayMessage = errorMessage;
+    return Promise.reject(error);
   }
 );
 
@@ -145,6 +151,10 @@ export const authAPI = {
   login: (credentials) => api.post('/auth/login/', credentials),
   
   getProfile: () => api.get('/auth/profile/').catch(error => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      return Promise.reject(error);
+    }
+
     console.log('Profile API failed, using stored user data');
     
     // Return stored user data as fallback
@@ -153,17 +163,7 @@ export const authAPI = {
       return { data: JSON.parse(storedUser) };
     }
     
-    // Create minimal user data
-    const email = localStorage.getItem('last_email') || 'user@example.com';
-    return { 
-      data: {
-        id: 0,
-        username: email.split('@')[0],
-        email: email,
-        role: 'user',
-        agency_id: null
-      }
-    };
+    return Promise.reject(error);
   }),
   
   updateProfile: (data) => api.patch('/auth/profile/', data),
