@@ -1,5 +1,5 @@
 // App.jsx - Add new routes
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -18,6 +18,11 @@ import Onboard from './pages/Onboard';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
 
+const LegacyDashboardRedirect = ({ to }) => {
+  const { search } = useLocation();
+  return <Navigate to={`${to}${search}`} replace />;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -31,6 +36,15 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
+
+          {/* Legacy protected URLs */}
+          <Route path="/settings" element={<LegacyDashboardRedirect to="/dashboard/settings" />} />
+          <Route path="/services" element={<LegacyDashboardRedirect to="/dashboard/services" />} />
+          <Route path="/clients" element={<LegacyDashboardRedirect to="/dashboard/clients" />} />
+          <Route path="/bookings" element={<LegacyDashboardRedirect to="/dashboard/bookings" />} />
+          <Route path="/bookings/:id" element={<LegacyDashboardRedirect to="/dashboard/bookings" />} />
+          <Route path="/onboard" element={<LegacyDashboardRedirect to="/dashboard/onboard" />} />
+          <Route path="/analytics" element={<LegacyDashboardRedirect to="/dashboard/analytics" />} />
           
           {/* Protected Routes */}
           <Route
@@ -77,6 +91,11 @@ function App() {
                   <Bookings />
                 </ProtectedRoute>
               }
+            />
+
+            <Route
+              path="bookings/:id"
+              element={<Navigate to="/dashboard/bookings" replace />}
             />
             
             <Route

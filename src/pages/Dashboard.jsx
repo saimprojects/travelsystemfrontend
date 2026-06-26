@@ -72,7 +72,7 @@ const Dashboard = () => {
       color: 'from-blue-500 to-blue-600',
       iconBg: 'bg-blue-100',
       iconColor: 'text-blue-600',
-      link: '/bookings',
+      link: '/dashboard/bookings',
     },
     {
       name: 'Total Customers',
@@ -82,7 +82,7 @@ const Dashboard = () => {
       color: 'from-green-500 to-green-600',
       iconBg: 'bg-green-100',
       iconColor: 'text-green-600',
-      link: '/clients',
+      link: '/dashboard/clients',
     },
     {
       name: 'Total Sales',
@@ -92,7 +92,7 @@ const Dashboard = () => {
       color: 'from-purple-500 to-purple-600',
       iconBg: 'bg-purple-100',
       iconColor: 'text-purple-600',
-      link: '/analytics',
+      link: '/dashboard/analytics',
     },
     {
       name: 'Total Received',
@@ -102,7 +102,7 @@ const Dashboard = () => {
       color: 'from-amber-500 to-amber-600',
       iconBg: 'bg-amber-100',
       iconColor: 'text-amber-600',
-      link: '/analytics',
+      link: '/dashboard/analytics',
     },
   ];
 
@@ -114,9 +114,9 @@ const Dashboard = () => {
   ];
 
   const quickActions = [
-    { label: 'Create Booking', icon: BookOpen, path: '/bookings?action=create', color: 'bg-blue-500 hover:bg-blue-600' },
-    { label: 'Add Client', icon: Users, path: '/clients?action=create', color: 'bg-green-500 hover:bg-green-600' },
-    { label: 'Add Service', icon: TrendingUp, path: '/services?action=create', color: 'bg-purple-500 hover:bg-purple-600' },
+    { label: 'Create Booking', icon: BookOpen, path: '/dashboard/bookings?action=create', color: 'bg-blue-500 hover:bg-blue-600' },
+    { label: 'Add Client', icon: Users, path: '/dashboard/clients?action=create', color: 'bg-green-500 hover:bg-green-600' },
+    { label: 'Add Service', icon: TrendingUp, path: '/dashboard/services?action=create', color: 'bg-purple-500 hover:bg-purple-600' },
   ];
 
   return (
@@ -238,7 +238,7 @@ const Dashboard = () => {
                 Refresh
               </button>
               <Link 
-                to="/bookings"
+                to="/dashboard/bookings"
                 className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 px-3 py-1 hover:bg-blue-50 rounded-lg transition-colors"
               >
                 <Eye className="w-4 h-4 mr-1" />
@@ -342,7 +342,7 @@ const Dashboard = () => {
                       </td>
                       <td className="px-6 py-4">
                         <Link 
-                          to={`/bookings/${booking.id}`}
+                          to="/dashboard/bookings"
                           className="inline-flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
                         >
                           View
@@ -359,7 +359,7 @@ const Dashboard = () => {
                         <p className="text-sm font-medium">No bookings yet</p>
                         <p className="text-xs mt-1">Start by creating your first booking</p>
                         <Link
-                          to="/bookings?action=create"
+                          to="/dashboard/bookings?action=create"
                           className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                         >
                           Create Booking
@@ -375,7 +375,7 @@ const Dashboard = () => {
           {recentBookings.length > 0 && (
             <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50">
               <Link 
-                to="/bookings"
+                to="/dashboard/bookings"
                 className="flex items-center justify-center text-sm font-medium text-blue-600 hover:text-blue-700 w-full text-center py-2 hover:bg-blue-50/50 rounded-lg transition-colors"
               >
                 View all bookings

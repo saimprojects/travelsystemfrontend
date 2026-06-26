@@ -126,12 +126,12 @@ const Sidebar = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['agency_owner', 'manager', 'agent', 'accountant'] },
-    { name: 'Settings', href: '/settings', icon: Settings, roles: ['agency_owner', 'manager'] },
-    { name: 'Services', href: '/services', icon: Briefcase, roles: ['agency_owner', 'manager', 'agent'] },
-    { name: 'Clients', href: '/clients', icon: Users, roles: ['agency_owner', 'manager', 'agent'] },
-    { name: 'Bookings', href: '/bookings', icon: BookOpen, roles: ['agency_owner', 'manager', 'agent'] },
-    { name: 'Onboard', href: '/onboard', icon: Calendar, roles: ['agency_owner', 'manager', 'agent'] },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3, roles: ['agency_owner', 'manager', 'accountant'] },
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['agency_owner', 'manager'] },
+    { name: 'Services', href: '/dashboard/services', icon: Briefcase, roles: ['agency_owner', 'manager', 'agent'] },
+    { name: 'Clients', href: '/dashboard/clients', icon: Users, roles: ['agency_owner', 'manager', 'agent'] },
+    { name: 'Bookings', href: '/dashboard/bookings', icon: BookOpen, roles: ['agency_owner', 'manager', 'agent'] },
+    { name: 'Onboard', href: '/dashboard/onboard', icon: Calendar, roles: ['agency_owner', 'manager', 'agent'] },
+    { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3, roles: ['agency_owner', 'manager', 'accountant'] },
   ];
 
   const filteredNavigation = navigation.filter((item) =>
