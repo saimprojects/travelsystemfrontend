@@ -180,7 +180,12 @@ export const agencyAPI = {
     return api.get('/agency/public/');
   }),
   
-  updateAgency: (data) => api.patch('/agency/', data),
+  updateAgency: (data) => {
+    if (data instanceof FormData) {
+      return api.patch('/agency/', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+    }
+    return api.patch('/agency/', data);
+  },
   
   // Check agency status
   checkAgencyStatus: () => api.get('/agency/check-status/')
