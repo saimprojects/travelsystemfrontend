@@ -58,7 +58,8 @@ const Bookings = () => {
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [printingBooking, setPrintingBooking] = useState(null);
-  
+  const [advancedFeatures, setAdvancedFeatures] = useState(false);
+
   // New states for dropdown search
   const [clientSearch, setClientSearch] = useState("");
   const [serviceSearch, setServiceSearch] = useState("");
@@ -83,6 +84,15 @@ const Bookings = () => {
     payment_method: "",
     arrival_date: "",
     departure_date: "",
+    visa_status: "not_applied",
+    visa_expiry_date: "",
+    visa_notes: "",
+    pnr_number: "",
+    airline: "",
+    flight_from: "",
+    flight_to: "",
+    ticket_status: "pending",
+    ticket_class: "economy",
   });
 
   const [paymentData, setPaymentData] = useState({
@@ -116,6 +126,13 @@ const Bookings = () => {
       fetchData();
     }
   }, [searchQuery, bookingIdQuery, missingOnly]);
+
+  // Fetch advanced features flag
+  useEffect(() => {
+    agencyAPI.getAgencyPublic().then(res => {
+      setAdvancedFeatures(res.data?.advanced_features_enabled || false);
+    }).catch(() => {});
+  }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -539,6 +556,15 @@ const Bookings = () => {
       payment_method: booking.payment_method || "",
       arrival_date: booking.arrival_date || "",
       departure_date: booking.departure_date || "",
+      visa_status: booking.visa_status || "not_applied",
+      visa_expiry_date: booking.visa_expiry_date || "",
+      visa_notes: booking.visa_notes || "",
+      pnr_number: booking.pnr_number || "",
+      airline: booking.airline || "",
+      flight_from: booking.flight_from || "",
+      flight_to: booking.flight_to || "",
+      ticket_status: booking.ticket_status || "pending",
+      ticket_class: booking.ticket_class || "economy",
     });
     setFormErrors({});
     setShowModal(true);
@@ -564,6 +590,15 @@ const Bookings = () => {
       payment_method: "",
       arrival_date: "",
       departure_date: "",
+      visa_status: "not_applied",
+      visa_expiry_date: "",
+      visa_notes: "",
+      pnr_number: "",
+      airline: "",
+      flight_from: "",
+      flight_to: "",
+      ticket_status: "pending",
+      ticket_class: "economy",
     });
     setFormErrors({});
     setEditingBooking(null);
@@ -572,6 +607,11 @@ const Bookings = () => {
     setServiceSearch("");
     setShowClientDropdown(false);
     setShowServiceDropdown(false);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const getMaxDiscount = () => {
@@ -1502,6 +1542,144 @@ const Bookings = () => {
                   </div>
                 </div>
 
+                {advancedFeatures && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Visa & Ticket divider */}
+                    <div className="col-span-2 border-t border-gray-100 pt-4">
+                      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-500 inline-block"></span>
+                        Visa &amp; Flight Details
+                      </div>
+                    </div>
+
+                    {/* Visa Status */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Visa Status</label>
+                      <select
+                        name="visa_status"
+                        value={formData.visa_status || 'not_applied'}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      >
+                        <option value="not_applied">Not Applied</option>
+                        <option value="applied">Applied</option>
+                        <option value="in_review">In Review</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </div>
+
+                    {/* Visa Expiry */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Visa Expiry Date</label>
+                      <input
+                        type="date"
+                        name="visa_expiry_date"
+                        value={formData.visa_expiry_date || ''}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      />
+                    </div>
+
+                    {/* Airline */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Airline</label>
+                      <input
+                        type="text"
+                        name="airline"
+                        value={formData.airline || ''}
+                        onChange={handleChange}
+                        placeholder="e.g. PIA, Emirates"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      />
+                    </div>
+
+                    {/* PNR */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">PNR Number</label>
+                      <input
+                        type="text"
+                        name="pnr_number"
+                        value={formData.pnr_number || ''}
+                        onChange={handleChange}
+                        placeholder="e.g. XK7R2T"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      />
+                    </div>
+
+                    {/* Flight From */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">From (IATA)</label>
+                      <input
+                        type="text"
+                        name="flight_from"
+                        value={formData.flight_from || ''}
+                        onChange={handleChange}
+                        placeholder="e.g. LHE"
+                        maxLength={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 uppercase"
+                      />
+                    </div>
+
+                    {/* Flight To */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">To (IATA)</label>
+                      <input
+                        type="text"
+                        name="flight_to"
+                        value={formData.flight_to || ''}
+                        onChange={handleChange}
+                        placeholder="e.g. JED"
+                        maxLength={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 uppercase"
+                      />
+                    </div>
+
+                    {/* Ticket Status */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Ticket Status</label>
+                      <select
+                        name="ticket_status"
+                        value={formData.ticket_status || 'pending'}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="issued">Issued</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </div>
+
+                    {/* Ticket Class */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Ticket Class</label>
+                      <select
+                        name="ticket_class"
+                        value={formData.ticket_class || 'economy'}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      >
+                        <option value="economy">Economy</option>
+                        <option value="business">Business</option>
+                        <option value="first">First Class</option>
+                      </select>
+                    </div>
+
+                    {/* Visa Notes */}
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Visa Notes</label>
+                      <textarea
+                        name="visa_notes"
+                        value={formData.visa_notes || ''}
+                        onChange={handleChange}
+                        rows={2}
+                        placeholder="Any notes about visa application..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100">
                   <button
                     type="button"
@@ -1805,6 +1983,60 @@ const Bookings = () => {
                   </div>
                  
                 </div>
+
+                {/* Visa & Ticket Details (Advanced Features) */}
+                {advancedFeatures && (viewingBooking.visa_status !== 'not_applied' || viewingBooking.pnr_number) && (
+                  <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <span className="w-2 h-2 rounded-full bg-violet-500 inline-block mr-2"></span>
+                      Visa &amp; Flight
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {viewingBooking.visa_status && viewingBooking.visa_status !== 'not_applied' && (
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <div className="text-xs text-gray-500 mb-1">Visa Status</div>
+                          <div className="text-sm font-medium text-gray-900 capitalize">{viewingBooking.visa_status.replace('_', ' ')}</div>
+                        </div>
+                      )}
+                      {viewingBooking.visa_expiry_date && (
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <div className="text-xs text-gray-500 mb-1">Visa Expiry</div>
+                          <div className="text-sm font-medium text-gray-900">{viewingBooking.visa_expiry_date}</div>
+                        </div>
+                      )}
+                      {viewingBooking.pnr_number && (
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <div className="text-xs text-gray-500 mb-1">PNR</div>
+                          <div className="text-sm font-mono font-medium text-blue-600">{viewingBooking.pnr_number}</div>
+                        </div>
+                      )}
+                      {viewingBooking.airline && (
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <div className="text-xs text-gray-500 mb-1">Airline</div>
+                          <div className="text-sm font-medium text-gray-900">{viewingBooking.airline}</div>
+                        </div>
+                      )}
+                      {(viewingBooking.flight_from || viewingBooking.flight_to) && (
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <div className="text-xs text-gray-500 mb-1">Route</div>
+                          <div className="text-sm font-medium text-gray-900">{viewingBooking.flight_from} → {viewingBooking.flight_to}</div>
+                        </div>
+                      )}
+                      {viewingBooking.ticket_status && viewingBooking.ticket_status !== 'pending' && (
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <div className="text-xs text-gray-500 mb-1">Ticket</div>
+                          <div className="text-sm font-medium text-gray-900 capitalize">{viewingBooking.ticket_status} · {viewingBooking.ticket_class}</div>
+                        </div>
+                      )}
+                    </div>
+                    {viewingBooking.visa_notes && (
+                      <div className="mt-3 bg-gray-50 rounded-xl p-3">
+                        <div className="text-xs text-gray-500 mb-1">Visa Notes</div>
+                        <div className="text-sm text-gray-700">{viewingBooking.visa_notes}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Actions */}
                 <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100">
