@@ -402,6 +402,17 @@ const Bookings = () => {
       paidAmount: paid,
       remainingAmount: remaining,
 
+      // Visa & Flight fields (advanced features)
+      visaStatus: booking.visa_status || 'not_applied',
+      visaExpiryDate: booking.visa_expiry_date || '',
+      visaNotes: booking.visa_notes || '',
+      pnrNumber: booking.pnr_number || '',
+      airline: booking.airline || '',
+      flightFrom: booking.flight_from || '',
+      flightTo: booking.flight_to || '',
+      ticketStatus: booking.ticket_status || 'pending',
+      ticketClass: booking.ticket_class || 'economy',
+
       additionalServices: []
     };
   };

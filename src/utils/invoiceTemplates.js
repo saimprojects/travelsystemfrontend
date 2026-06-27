@@ -31,25 +31,86 @@ export const buildServiceMeta = (invoiceData, color = "#64748b") => {
 
 // ── Shared action buttons + WhatsApp script (injected into every template) ──
 export const buildInvoiceActions = (invoiceData) => `
-  <div class="action-buttons no-print">
-    <button class="action-button btn-print" onclick="window.print()">${IC.print} Print Invoice</button>
-    <button class="action-button btn-pdf" onclick="window.print()">${IC.download} Download PDF</button>
+  <div class="action-buttons no-print" id="inv-action-bar">
+    <div style="position:relative" id="print-dd">
+      <button class="action-button btn-print" onclick="togglePrintMenu()" style="gap:6px">${IC.print} Print &nbsp;&#9660;</button>
+      <div id="print-menu" style="display:none;position:absolute;top:44px;left:0;background:#fff;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;min-width:230px;z-index:9999;border:1px solid #e2e8f0">
+        <button onclick="printSimple()" style="display:flex;align-items:center;gap:8px;width:100%;padding:12px 16px;background:none;border:none;border-bottom:1px solid #f1f5f9;cursor:pointer;text-align:left;font-size:13px;font-weight:600;color:#1e293b;font-family:inherit">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Simple Details
+        </button>
+        <button onclick="printFull()" style="display:flex;align-items:center;gap:8px;width:100%;padding:12px 16px;background:none;border:none;cursor:pointer;text-align:left;font-size:13px;font-weight:600;color:#4f46e5;font-family:inherit">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          Full Details (Visa &amp; Ticket)
+        </button>
+      </div>
+    </div>
+    <button class="action-button btn-pdf" onclick="printFull()">${IC.download} Download PDF</button>
     <button class="action-button btn-wa" onclick="shareOnWhatsApp()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="white" style="margin-right:6px"><path d="M20.52 3.49C18.18 1.14 15.09 0 12 0 5.37 0 0 5.37 0 12c0 2.04.5 4.08 1.51 5.92L0 24l6.33-1.55c1.77.97 3.77 1.55 5.92 1.55 6.63 0 12-5.37 12-12 0-3.09-1.14-6.18-3.49-8.51zM12 21.6c-1.94 0-3.83-.55-5.46-1.58l-.39-.23-3.96 1.03 1.06-3.84-.25-.39A9.57 9.57 0 0 1 2.4 12c0-5.3 4.3-9.6 9.6-9.6 2.56 0 5.12.98 7.07 2.93s2.93 4.51 2.93 7.07c0 5.3-4.3 9.6-9.6 9.6zm5.26-7.18c-.15-.08-1.23-.61-1.42-.67-.19-.07-.33-.1-.47.1-.14.19-.55.67-.68.81-.13.14-.26.16-.49.05-.23-.11-.97-.36-1.84-1.15-.68-.61-1.14-1.36-1.27-1.59-.13-.23-.01-.36.1-.47.1-.1.23-.26.34-.39.12-.13.16-.23.24-.39.08-.16.04-.3-.02-.42-.06-.12-.47-1.14-.64-1.56-.17-.42-.35-.36-.47-.37-.12-.01-.26-.01-.39-.01s-.36.05-.55.26c-.19.21-.73.71-.73 1.73s.75 2.01.85 2.15c.1.14 1.47 2.25 3.58 3.15.49.21.87.34 1.17.43.49.16.93.14 1.28.08.39-.06 1.23-.5 1.4-.99.17-.48.17-.9.12-.99-.05-.09-.2-.14-.35-.22z"/></svg>
       WhatsApp
     </button>
   </div>
   <script>
+    function togglePrintMenu() {
+      var m = document.getElementById('print-menu');
+      m.style.display = m.style.display === 'none' ? 'block' : 'none';
+    }
+    function printSimple() {
+      document.getElementById('print-menu').style.display = 'none';
+      var vt = document.getElementById('vt-section');
+      if (vt) vt.style.display = 'none';
+      window.print();
+    }
+    function printFull() {
+      document.getElementById('print-menu').style.display = 'none';
+      var vt = document.getElementById('vt-section');
+      if (vt) vt.style.display = 'block';
+      window.print();
+      window.addEventListener('afterprint', function() { if (vt) vt.style.display = 'none'; }, { once: true });
+    }
     function shareOnWhatsApp() {
       const msg = \`*Invoice #${invoiceData.invoiceNo}*\\n\\n*Client:* ${invoiceData.clientName}\\n*Service:* ${invoiceData.serviceName}\\n*Total:* PKR ${invoiceData.total.toLocaleString()}\\n*Paid:* PKR ${invoiceData.paidAmount.toLocaleString()}\\n*Due:* PKR ${invoiceData.remainingAmount.toLocaleString()}\\n*Status:* ${invoiceData.paymentStatus}\\n\\nThank you for choosing ${invoiceData.agencyName}!\`;
       window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
     }
+    document.addEventListener('click', function(e) {
+      var dd = document.getElementById('print-dd');
+      if (dd && !dd.contains(e.target)) { var m = document.getElementById('print-menu'); if (m) m.style.display = 'none'; }
+    });
   <\/script>
 `;
 
 export const buildStatusBadge = (status) => {
   const cls = status === "PAID" ? "status-paid" : status === "HALF PAID" ? "status-half" : "status-pending";
   return `<span class="status-badge ${cls}">${status}</span>`;
+};
+
+// ── Visa & Flight info section (hidden by default, shown on Full Details print) ──
+export const buildVisaTicketSection = (invoiceData, primaryColor = '#4f46e5') => {
+  const visaLabels = { not_applied: 'Not Applied', applied: 'Applied', in_review: 'In Review', approved: 'Approved', rejected: 'Rejected' };
+  const visaColors = { not_applied: '#64748b', applied: '#2563eb', in_review: '#d97706', approved: '#16a34a', rejected: '#dc2626' };
+  const tktLabels  = { pending: 'Pending', issued: 'Issued', cancelled: 'Cancelled' };
+  const clsLabels  = { economy: 'Economy', business: 'Business', first: 'First Class' };
+  const hasVisa    = invoiceData.visaStatus && invoiceData.visaStatus !== 'not_applied';
+  const hasTicket  = invoiceData.pnrNumber || invoiceData.airline || invoiceData.flightFrom || invoiceData.flightTo;
+  if (!hasVisa && !hasTicket) return '<div id="vt-section" style="display:none"></div>';
+  const cells = [];
+  if (hasVisa)
+    cells.push(`<div style="background:#f8fafc;border-radius:7px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:4px;font-weight:700">Visa Status</div><div style="font-size:13px;font-weight:700;color:${visaColors[invoiceData.visaStatus]||'#1e293b'}">${visaLabels[invoiceData.visaStatus]||invoiceData.visaStatus}</div></div>`);
+  if (invoiceData.visaExpiryDate)
+    cells.push(`<div style="background:#f8fafc;border-radius:7px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:4px;font-weight:700">Visa Expiry</div><div style="font-size:13px;font-weight:700;color:#1e293b">${invoiceData.visaExpiryDate}</div></div>`);
+  if (invoiceData.pnrNumber)
+    cells.push(`<div style="background:#f8fafc;border-radius:7px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:4px;font-weight:700">PNR Number</div><div style="font-size:13px;font-weight:700;color:${primaryColor};font-family:monospace;letter-spacing:1px">${invoiceData.pnrNumber}</div></div>`);
+  if (invoiceData.airline)
+    cells.push(`<div style="background:#f8fafc;border-radius:7px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:4px;font-weight:700">Airline</div><div style="font-size:13px;font-weight:700;color:#1e293b">${invoiceData.airline}</div></div>`);
+  if (invoiceData.flightFrom || invoiceData.flightTo)
+    cells.push(`<div style="background:#f8fafc;border-radius:7px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:4px;font-weight:700">Route</div><div style="font-size:13px;font-weight:700;color:#1e293b;letter-spacing:1px">${invoiceData.flightFrom||'—'} → ${invoiceData.flightTo||'—'}</div></div>`);
+  if (invoiceData.ticketStatus)
+    cells.push(`<div style="background:#f8fafc;border-radius:7px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:4px;font-weight:700">Ticket</div><div style="font-size:13px;font-weight:700;color:#1e293b">${tktLabels[invoiceData.ticketStatus]||invoiceData.ticketStatus} · ${clsLabels[invoiceData.ticketClass]||invoiceData.ticketClass}</div></div>`);
+  const notesHtml = invoiceData.visaNotes
+    ? `<div style="padding:0 14px 12px"><div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:7px;padding:8px 12px;font-size:11px;color:#92400e"><strong>Notes:</strong> ${invoiceData.visaNotes}</div></div>`
+    : '';
+  return `<div id="vt-section" style="display:none;margin-top:14px;border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden"><div style="background:${primaryColor};padding:8px 14px;display:flex;align-items:center;gap:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg><span style="color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px">Visa &amp; Flight Information</span></div><div style="padding:12px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${cells.join('')}</div>${notesHtml}</div>`;
 };
 
 // ── TEMPLATE 1: Classic Blue ────────────────────────────────────────────────
@@ -164,6 +225,7 @@ export const buildClassicTemplate = (invoiceData) => `<!DOCTYPE html><html lang=
       <div class="note ${invoiceData.remainingAmount > 0 ? "warn" : "ok"}">
         ${invoiceData.remainingAmount > 0 ? `${IC.warning}<strong>Note:</strong> Please clear the remaining balance of <strong>PKR ${invoiceData.remainingAmount.toLocaleString()}</strong> before departure.` : `${IC.ok}<strong>Fully Paid</strong> — Thank you! Payment has been received in full.`}
       </div>
+      ${buildVisaTicketSection(invoiceData, '#4f46e5')}
     </div>
     <div class="footer">Thank you for choosing <strong>${invoiceData.agencyName}</strong> &nbsp;|&nbsp; Generated on ${new Date().toLocaleDateString("en-PK",{day:"numeric",month:"long",year:"numeric"})}</div>
   </div></body></html>`;
@@ -301,6 +363,7 @@ export const buildGoldVoucherTemplate = (invoiceData) => `<!DOCTYPE html><html l
       </div>
     </div>
     ${invoiceData.remainingAmount > 0 ? `<div class="note-strip">${IC.warning}<strong>Note:</strong> All amounts must be cleared before departure date!</div>` : `<div class="note-strip">${IC.ok}<strong>Payment Complete</strong> — Thank you for your business!</div>`}
+    ${buildVisaTicketSection(invoiceData, '#92400e')}
     <div class="footer">
       <span>Thank you for choosing <strong>${invoiceData.agencyName}</strong></span>
       <span>Generated: ${new Date().toLocaleDateString("en-PK",{day:"numeric",month:"short",year:"numeric"})}</span>
@@ -419,6 +482,7 @@ export const buildDarkProTemplate = (invoiceData) => `<!DOCTYPE html><html lang=
     <div class="note-bar ${invoiceData.remainingAmount > 0 ? "warn" : "ok"}">
       ${invoiceData.remainingAmount > 0 ? `${IC.warning}<strong>Note:</strong> All amounts must be cleared before the due date!` : `${IC.ok}<strong>Fully Paid</strong> — Thank you for your business with ${invoiceData.agencyName}!`}
     </div>
+    ${buildVisaTicketSection(invoiceData, '#111827')}
     <div class="footer">
       <span>${invoiceData.agencyName} &nbsp;|&nbsp; ${invoiceData.agencyPhone || ""} &nbsp;${invoiceData.agencyEmail ? "| " + invoiceData.agencyEmail : ""}</span>
       <span>Generated: ${new Date().toLocaleDateString("en-PK",{day:"numeric",month:"short",year:"numeric"})}</span>
@@ -521,6 +585,7 @@ export const buildMinimalTemplate = (invoiceData) => `<!DOCTYPE html><html lang=
     <div class="note ${invoiceData.remainingAmount > 0 ? "due" : "ok"}">
       ${invoiceData.remainingAmount > 0 ? `Please clear the remaining balance of <strong>PKR ${invoiceData.remainingAmount.toLocaleString()}</strong> before departure.` : `Payment complete — Thank you for choosing ${invoiceData.agencyName}!`}
     </div>
+    ${buildVisaTicketSection(invoiceData, '#18181b')}
     <div class="footer-line">
       <span>${invoiceData.agencyName}</span>
       <span>Generated ${new Date().toLocaleDateString("en-PK",{day:"numeric",month:"long",year:"numeric"})}</span>
@@ -642,6 +707,7 @@ export const buildCorporateTemplate = (invoiceData) => `<!DOCTYPE html><html lan
       <div class="note ${invoiceData.remainingAmount > 0 ? "warn" : "ok"}">
         ${invoiceData.remainingAmount > 0 ? `${IC.warning}Please clear the remaining balance of <strong>PKR ${invoiceData.remainingAmount.toLocaleString()}</strong> before departure.` : `${IC.ok}<strong>Fully Paid</strong> — Thank you for choosing ${invoiceData.agencyName}!`}
       </div>
+      ${buildVisaTicketSection(invoiceData, '#0f766e')}
     </div>
     <div class="footer">
       <span>Thank you for your business — <strong>${invoiceData.agencyName}</strong></span>

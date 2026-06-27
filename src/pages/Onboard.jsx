@@ -1748,6 +1748,7 @@ import { useEffect, useState, useRef } from 'react';
 import { onboardAPI, agencyAPI, clientsAPI, servicesAPI } from '../services/api';
 import { Calendar, Search, Printer, Filter, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { buildClassicTemplate, buildGoldVoucherTemplate, buildDarkProTemplate, buildMinimalTemplate, buildCorporateTemplate } from '../utils/invoiceTemplates';
 
 const Onboard = () => {
   const [bookings, setBookings] = useState([]);
@@ -1923,16 +1924,55 @@ const Onboard = () => {
       total: finalPrice,
       paidAmount: paid,
       remainingAmount: remaining,
-      
+
+      serviceDuration: service?.service_duration || booking.service_details?.service_duration || '',
+      serviceInclusions: (() => {
+        const raw = service?.service_include ?? booking.service_details?.service_include ?? [];
+        if (Array.isArray(raw)) return raw;
+        try { return JSON.parse(raw); } catch { return []; }
+      })(),
+
+      // Visa & Flight fields (advanced features)
+      visaStatus: booking.visa_status || 'not_applied',
+      visaExpiryDate: booking.visa_expiry_date || '',
+      visaNotes: booking.visa_notes || '',
+      pnrNumber: booking.pnr_number || '',
+      airline: booking.airline || '',
+      flightFrom: booking.flight_from || '',
+      flightTo: booking.flight_to || '',
+      ticketStatus: booking.ticket_status || 'pending',
+      ticketClass: booking.ticket_class || 'economy',
+
       additionalServices: []
     };
   };
 
   const printInvoice = (booking) => {
     const invoiceData = generateInvoiceData(booking);
-    
+    invoiceData.agencyLogoUrl = agency?.logo_url || null;
+
+    const template = agency?.invoice_template || 'classic';
+    let invoiceHTML;
+    switch (template) {
+      case 'gold_voucher': invoiceHTML = buildGoldVoucherTemplate(invoiceData); break;
+      case 'dark_pro':     invoiceHTML = buildDarkProTemplate(invoiceData);     break;
+      case 'minimal':      invoiceHTML = buildMinimalTemplate(invoiceData);     break;
+      case 'corporate':    invoiceHTML = buildCorporateTemplate(invoiceData);   break;
+      default:             invoiceHTML = buildClassicTemplate(invoiceData);     break;
+    }
+
     const printWindow = window.open('', '_blank');
-    
+    printWindow.document.write(invoiceHTML);
+    printWindow.document.close();
+    toast.success('Invoice opened — use buttons to print or share on WhatsApp.');
+  };
+
+  // ── old custom HTML removed — kept below as comment for reference ──
+  const _legacyPrintInvoice = (booking) => {
+    const invoiceData = generateInvoiceData(booking);
+
+    const printWindow = window.open('', '_blank');
+
     const invoiceHTML = `
       <!DOCTYPE html>
       <html lang="en">
@@ -2563,7 +2603,7 @@ const Onboard = () => {
     
     printWindow.document.write(invoiceHTML);
     printWindow.document.close();
-    
+
     toast.success('Booking confirmation opened in new window. Click the print button to print.');
   };
 
