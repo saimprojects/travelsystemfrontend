@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { servicesAPI } from '../services/api';
 import { Plus, Edit, Trash2, Power, PowerOff, Eye, Package, MapPin, Clock, DollarSign, Tag, Info, X, Save, AlertCircle, Printer, Search, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -890,12 +891,26 @@ const Services = () => {
       )}
 
       {/* Agent Details Modal */}
+      <AnimatePresence>
       {showDetailsModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity animate-in fade-in duration-200"></div>
-          
+          <motion.div
+            key="det-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black bg-opacity-50"
+          />
           <div className="flex items-center justify-center min-h-screen p-4">
-            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <motion.div
+              key="det-panel"
+              initial={{ opacity: 0, y: 32, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.97 }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl"
+            >
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
                 <div className="flex items-center space-x-3">
@@ -1062,18 +1077,33 @@ const Services = () => {
                   Close Details
                 </button>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       )}
+      </AnimatePresence>
 
       {/* Create/Edit Service Modal */}
+      <AnimatePresence>
       {showModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity animate-in fade-in duration-200"></div>
-          
+          <motion.div
+            key="svc-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black bg-opacity-50"
+          />
           <div className="flex items-center justify-center min-h-screen p-4">
-            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <motion.div
+              key="svc-panel"
+              initial={{ opacity: 0, y: 32, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.97 }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl"
+            >
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
                 <div className="flex items-center space-x-3">
@@ -1327,10 +1357,11 @@ const Services = () => {
                   </button>
                 </div>
               </form>
-            </div>
+            </motion.div>
           </div>
         </div>
       )}
+      </AnimatePresence>
     </div>
   );
 };

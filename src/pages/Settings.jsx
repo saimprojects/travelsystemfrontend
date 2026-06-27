@@ -1,9 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { usersAPI, agencyAPI } from '../services/api';
 import {
   Plus, Edit, UserX, UserCheck, Building2, Phone, Mail, Shield, X, Save,
-  Upload, Image, CheckCircle, FileText, Palette, MapPin, Info,
+  Upload, Image, CheckCircle, FileText, Palette, MapPin, Info, Eye,
 } from 'lucide-react';
+import { buildInvoiceHTML } from '../utils/invoiceTemplates';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -154,6 +156,9 @@ const Settings = () => {
   });
   const [agencySubmitting, setAgencySubmitting] = useState(false);
 
+  // Invoice preview
+  const [previewTemplate, setPreviewTemplate] = useState(null);
+
   // Logo upload
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
@@ -298,6 +303,36 @@ const Settings = () => {
   }
 
   const isOwnerOrManager = user.role === 'agency_owner' || user.role === 'manager';
+
+  const DUMMY_INVOICE = {
+    invoiceNo: "INV-2025-0042",
+    bookingId: 42,
+    invoiceDate: "15 Jan 2025",
+    agencyName: agency?.name || "Al-Hayat Travels",
+    agencyPhone: agency?.phone_number || "+92 300 1234567",
+    agencyEmail: agency?.email || "info@alhayat.com",
+    agencyAddress: agency?.address || "Lahore, Pakistan",
+    agencyLogoUrl: agency?.logo_url || null,
+    clientName: "Ahmed Khan",
+    clientPhone: "+92 321 9876543",
+    clientAltPhone: "",
+    clientEmail: "ahmed.khan@email.com",
+    clientAddress: "Karachi, Pakistan",
+    serviceName: "Umrah Package - Standard",
+    serviceDuration: "14 Days",
+    serviceInclusions: ["Flight (Return)", "Hotel Makkah 7N", "Hotel Madinah 4N", "Visa", "Transport"],
+    serviceQty: 1,
+    servicePrice: 180000,
+    paymentStatus: "HALF PAID",
+    departureDate: "20 Feb 2025",
+    arrivalDate: "06 Mar 2025",
+    subTotal: 180000,
+    discount: 5000,
+    total: 175000,
+    paidAmount: 87500,
+    remainingAmount: 87500,
+    additionalServices: [],
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in-50 slide-in-from-bottom-4 duration-500">
@@ -540,7 +575,18 @@ const Settings = () => {
                       <CheckCircle className="w-3.5 h-3.5 text-white" />
                     </div>
                   )}
-                  {tpl.preview}
+                  <div className="relative">
+                    {tpl.preview}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setPreviewTemplate(tpl.id); }}
+                        className="bg-white/95 backdrop-blur-sm text-gray-800 text-[10px] font-semibold px-2.5 py-1 rounded-full shadow-md border border-gray-200 flex items-center gap-1 hover:bg-gray-50"
+                      >
+                        <Eye className="w-3 h-3" /> Preview
+                      </button>
+                    </div>
+                  </div>
                   <div className="mt-2">
                     <p className={`text-xs font-semibold leading-tight ${isSelected ? 'text-purple-700' : 'text-gray-700'}`}>
                       {tpl.name}
@@ -551,6 +597,76 @@ const Settings = () => {
               );
             })}
           </div>
+
+          <AnimatePresence>
+            {previewTemplate && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[60] bg-black/80 flex flex-col"
+              >
+                {/* Top bar */}
+                <div className="flex items-center justify-between px-4 py-2.5 bg-gray-900 border-b border-gray-700 flex-shrink-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {TEMPLATES.map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => setPreviewTemplate(t.id)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                          previewTemplate === t.id
+                            ? 'bg-purple-600 text-white'
+                            : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                        }`}
+                      >
+                        {t.name}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                    {isOwnerOrManager && (
+                      <button
+                        onClick={async () => {
+                          const prev = agencyForm.invoice_template;
+                          setAgencyForm(f => ({ ...f, invoice_template: previewTemplate }));
+                          try {
+                            await agencyAPI.updateAgency({ invoice_template: previewTemplate });
+                            toast.success(`Template saved: ${TEMPLATES.find(t => t.id === previewTemplate)?.name}`);
+                            setPreviewTemplate(null);
+                            fetchData();
+                          } catch {
+                            setAgencyForm(f => ({ ...f, invoice_template: prev }));
+                            toast.error('Failed to save template');
+                          }
+                        }}
+                        className="flex items-center gap-2 px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold transition-colors"
+                      >
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        Use This Template
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setPreviewTemplate(null)}
+                      className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                {/* iframe */}
+                <div className="flex-1 overflow-hidden bg-gray-300 p-3">
+                  <iframe
+                    key={previewTemplate}
+                    srcDoc={buildInvoiceHTML(DUMMY_INVOICE, previewTemplate)}
+                    className="w-full h-full border-0 rounded-lg shadow-2xl bg-white"
+                    title="Invoice Preview"
+                    sandbox="allow-scripts allow-same-origin"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -676,11 +792,26 @@ const Settings = () => {
       </div>
 
       {/* ── Staff Modal ──────────────────────────────── */}
+      <AnimatePresence>
       {showModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="fixed inset-0 bg-black bg-opacity-50 animate-in fade-in duration-200" />
+          <motion.div
+            key="st-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black bg-opacity-50"
+          />
           <div className="flex items-center justify-center min-h-screen p-4">
-            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <motion.div
+              key="st-panel"
+              initial={{ opacity: 0, y: 32, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.97 }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl"
+            >
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-blue-100 rounded-lg">
@@ -748,10 +879,11 @@ const Settings = () => {
                   </button>
                 </div>
               </form>
-            </div>
+            </motion.div>
           </div>
         </div>
       )}
+      </AnimatePresence>
     </div>
   );
 };
