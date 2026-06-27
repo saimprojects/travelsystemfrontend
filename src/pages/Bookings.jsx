@@ -59,7 +59,7 @@ const Bookings = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [printingBooking, setPrintingBooking] = useState(null);
   const [advancedFeatures, setAdvancedFeatures] = useState(false);
-  const [printDropdownId, setPrintDropdownId] = useState(null);
+  const [printModalBooking, setPrintModalBooking] = useState(null);
 
   // New states for dropdown search
   const [clientSearch, setClientSearch] = useState("");
@@ -437,11 +437,11 @@ const Bookings = () => {
       default:               invoiceHTML = buildClassicTemplate(invoiceData);     break;
     }
 
-    // Full mode: make vt-section visible from the start
+    // Full mode: make vt-section visible from the start (regex handles both empty and full sections)
     if (mode === 'full') {
       invoiceHTML = invoiceHTML.replace(
-        'id="vt-section" style="display:none"',
-        'id="vt-section" style="display:block"'
+        /id="vt-section" style="display:none/g,
+        'id="vt-section" style="display:block'
       );
     }
 
@@ -1078,56 +1078,14 @@ const Bookings = () => {
                           <DollarSign className="w-4 h-4" />
                         </button>
 
-                        {/* Print button — dropdown if advanced features on */}
-                        <div className="relative">
-                          <button
-                            onClick={() => {
-                              if (advancedFeatures) {
-                                setPrintDropdownId(printDropdownId === booking.id ? null : booking.id);
-                              } else {
-                                printInvoice(booking, 'simple');
-                              }
-                            }}
-                            className="p-1.5 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors duration-200"
-                            title="Print Invoice"
-                          >
-                            <Printer className="w-4 h-4" />
-                          </button>
-                          {advancedFeatures && printDropdownId === booking.id && (
-                            <>
-                              {/* backdrop to close on outside click */}
-                              <div
-                                className="fixed inset-0 z-40"
-                                onClick={() => setPrintDropdownId(null)}
-                              />
-                              <div className="absolute right-0 top-9 z-50 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden min-w-[210px]">
-                                <div className="px-3 py-2 border-b border-gray-100 bg-gray-50">
-                                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Print Options</span>
-                                </div>
-                                <button
-                                  onClick={() => { printInvoice(booking, 'simple'); setPrintDropdownId(null); }}
-                                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 border-b border-gray-100 text-left transition-colors"
-                                >
-                                  <Printer className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
-                                  <div>
-                                    <div className="font-semibold text-gray-800">Simple Invoice</div>
-                                    <div className="text-xs text-gray-400">Basic booking details</div>
-                                  </div>
-                                </button>
-                                <button
-                                  onClick={() => { printInvoice(booking, 'full'); setPrintDropdownId(null); }}
-                                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-50 text-left transition-colors"
-                                >
-                                  <svg className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-                                  <div>
-                                    <div className="font-semibold">Full Details</div>
-                                    <div className="text-xs text-indigo-400">Includes Visa &amp; Ticket info</div>
-                                  </div>
-                                </button>
-                              </div>
-                            </>
-                          )}
-                        </div>
+                        {/* Print button */}
+                        <button
+                          onClick={() => advancedFeatures ? setPrintModalBooking(booking) : printInvoice(booking, 'simple')}
+                          className="p-1.5 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors duration-200"
+                          title="Print Invoice"
+                        >
+                          <Printer className="w-4 h-4" />
+                        </button>
 
                         <button
                           onClick={() => openViewModal(booking)}
@@ -1816,55 +1774,13 @@ const Bookings = () => {
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
-                  {advancedFeatures ? (
-                    <div className="relative">
-                      <button
-                        onClick={() => setPrintDropdownId(printDropdownId === 'view-modal' ? null : 'view-modal')}
-                        className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200"
-                      >
-                        <Printer className="w-4 h-4 mr-2" />
-                        Print ▾
-                      </button>
-                      {printDropdownId === 'view-modal' && (
-                        <>
-                          <div className="fixed inset-0 z-40" onClick={() => setPrintDropdownId(null)} />
-                          <div className="absolute right-0 top-11 z-50 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden min-w-[210px]">
-                            <div className="px-3 py-2 border-b border-gray-100 bg-gray-50">
-                              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Print Options</span>
-                            </div>
-                            <button
-                              onClick={() => { printInvoice(viewingBooking, 'simple'); setPrintDropdownId(null); }}
-                              className="flex items-center gap-2.5 w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 border-b border-gray-100 text-left transition-colors"
-                            >
-                              <Printer className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
-                              <div>
-                                <div className="font-semibold text-gray-800">Simple Invoice</div>
-                                <div className="text-xs text-gray-400">Basic booking details</div>
-                              </div>
-                            </button>
-                            <button
-                              onClick={() => { printInvoice(viewingBooking, 'full'); setPrintDropdownId(null); }}
-                              className="flex items-center gap-2.5 w-full px-4 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-50 text-left transition-colors"
-                            >
-                              <svg className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-                              <div>
-                                <div className="font-semibold">Full Details</div>
-                                <div className="text-xs text-indigo-400">Includes Visa &amp; Ticket info</div>
-                              </div>
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => printInvoice(viewingBooking, 'simple')}
-                      className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200"
-                    >
-                      <Printer className="w-4 h-4 mr-2" />
-                      Print Invoice
-                    </button>
-                  )}
+                  <button
+                    onClick={() => advancedFeatures ? setPrintModalBooking(viewingBooking) : printInvoice(viewingBooking, 'simple')}
+                    className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200"
+                  >
+                    <Printer className="w-4 h-4 mr-2" />
+                    Print Invoice
+                  </button>
                   <button
                     onClick={() => setShowViewModal(false)}
                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
@@ -2331,6 +2247,97 @@ const Bookings = () => {
           </div>
         </div>
       )}
+      </AnimatePresence>
+
+      {/* ── Print Options Modal ── */}
+      <AnimatePresence>
+        {printModalBooking && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="print-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+              onClick={() => setPrintModalBooking(null)}
+            />
+
+            {/* Modal Card */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+              <motion.div
+                key="print-modal"
+                initial={{ opacity: 0, scale: 0.92, y: 24 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 16 }}
+                transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                className="pointer-events-auto w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                      <Printer className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">Print Invoice</h3>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Booking #{printModalBooking.id} — {printModalBooking.client_details?.name || 'Client'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setPrintModalBooking(null)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Options */}
+                <div className="p-6 space-y-3">
+                  <p className="text-sm text-gray-500 mb-4">Choose what to include in the printed invoice:</p>
+
+                  {/* Option 1 — Simple */}
+                  <button
+                    onClick={() => { printInvoice(printModalBooking, 'simple'); setPrintModalBooking(null); }}
+                    className="group w-full flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 text-left"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center flex-shrink-0 transition-colors">
+                      <Printer className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900 text-sm">Simple Invoice</div>
+                      <div className="text-xs text-gray-500 mt-0.5">Client info, service, payment summary — standard invoice</div>
+                    </div>
+                    <svg className="w-4 h-4 text-gray-400 group-hover:text-gray-600 flex-shrink-0 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+
+                  {/* Option 2 — Full Details */}
+                  <button
+                    onClick={() => { printInvoice(printModalBooking, 'full'); setPrintModalBooking(null); }}
+                    className="group w-full flex items-center gap-4 p-4 rounded-xl border-2 border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all duration-200 text-left"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-indigo-100 group-hover:bg-indigo-200 flex items-center justify-center flex-shrink-0 transition-colors">
+                      <svg className="w-5 h-5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-indigo-700 text-sm">Full Details</div>
+                      <div className="text-xs text-indigo-500 mt-0.5">Everything above + Visa status, PNR, airline, flight route &amp; ticket info</div>
+                    </div>
+                    <svg className="w-4 h-4 text-indigo-400 group-hover:text-indigo-600 flex-shrink-0 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
+
+                {/* Footer hint */}
+                <div className="px-6 pb-5">
+                  <p className="text-xs text-gray-400 text-center">Invoice will open in a new tab with print &amp; WhatsApp share options</p>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
       </AnimatePresence>
     </div>
   );
