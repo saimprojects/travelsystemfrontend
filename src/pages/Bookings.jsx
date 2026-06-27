@@ -59,6 +59,7 @@ const Bookings = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [printingBooking, setPrintingBooking] = useState(null);
   const [advancedFeatures, setAdvancedFeatures] = useState(false);
+  const [printDropdownId, setPrintDropdownId] = useState(null);
 
   // New states for dropdown search
   const [clientSearch, setClientSearch] = useState("");
@@ -419,7 +420,7 @@ const Bookings = () => {
 
   // ── Invoice template builders (imported from ../utils/invoiceTemplates) ──
 
-  const printInvoice = (booking) => {
+  const printInvoice = (booking, mode = 'simple') => {
     setPrintingBooking(booking);
     const invoiceData = generateInvoiceData(booking);
 
@@ -434,6 +435,14 @@ const Bookings = () => {
       case "minimal":        invoiceHTML = buildMinimalTemplate(invoiceData);     break;
       case "corporate":      invoiceHTML = buildCorporateTemplate(invoiceData);   break;
       default:               invoiceHTML = buildClassicTemplate(invoiceData);     break;
+    }
+
+    // Full mode: make vt-section visible from the start
+    if (mode === 'full') {
+      invoiceHTML = invoiceHTML.replace(
+        'id="vt-section" style="display:none"',
+        'id="vt-section" style="display:block"'
+      );
     }
 
     const printWindow = window.open("", "_blank");
@@ -1069,13 +1078,56 @@ const Bookings = () => {
                           <DollarSign className="w-4 h-4" />
                         </button>
 
-                        <button
-                          onClick={() => printInvoice(booking)}
-                          className="p-1.5 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors duration-200"
-                          title="Print Invoice"
-                        >
-                          <Printer className="w-4 h-4" />
-                        </button>
+                        {/* Print button — dropdown if advanced features on */}
+                        <div className="relative">
+                          <button
+                            onClick={() => {
+                              if (advancedFeatures) {
+                                setPrintDropdownId(printDropdownId === booking.id ? null : booking.id);
+                              } else {
+                                printInvoice(booking, 'simple');
+                              }
+                            }}
+                            className="p-1.5 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors duration-200"
+                            title="Print Invoice"
+                          >
+                            <Printer className="w-4 h-4" />
+                          </button>
+                          {advancedFeatures && printDropdownId === booking.id && (
+                            <>
+                              {/* backdrop to close on outside click */}
+                              <div
+                                className="fixed inset-0 z-40"
+                                onClick={() => setPrintDropdownId(null)}
+                              />
+                              <div className="absolute right-0 top-9 z-50 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden min-w-[210px]">
+                                <div className="px-3 py-2 border-b border-gray-100 bg-gray-50">
+                                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Print Options</span>
+                                </div>
+                                <button
+                                  onClick={() => { printInvoice(booking, 'simple'); setPrintDropdownId(null); }}
+                                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 border-b border-gray-100 text-left transition-colors"
+                                >
+                                  <Printer className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                                  <div>
+                                    <div className="font-semibold text-gray-800">Simple Invoice</div>
+                                    <div className="text-xs text-gray-400">Basic booking details</div>
+                                  </div>
+                                </button>
+                                <button
+                                  onClick={() => { printInvoice(booking, 'full'); setPrintDropdownId(null); }}
+                                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-50 text-left transition-colors"
+                                >
+                                  <svg className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                                  <div>
+                                    <div className="font-semibold">Full Details</div>
+                                    <div className="text-xs text-indigo-400">Includes Visa &amp; Ticket info</div>
+                                  </div>
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
 
                         <button
                           onClick={() => openViewModal(booking)}
@@ -1764,14 +1816,55 @@ const Bookings = () => {
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() => printInvoice(viewingBooking)}
-                    className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200"
-                    title="Print Invoice"
-                  >
-                    <Printer className="w-4 h-4 mr-2" />
-                    Print Invoice
-                  </button>
+                  {advancedFeatures ? (
+                    <div className="relative">
+                      <button
+                        onClick={() => setPrintDropdownId(printDropdownId === 'view-modal' ? null : 'view-modal')}
+                        className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200"
+                      >
+                        <Printer className="w-4 h-4 mr-2" />
+                        Print ▾
+                      </button>
+                      {printDropdownId === 'view-modal' && (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={() => setPrintDropdownId(null)} />
+                          <div className="absolute right-0 top-11 z-50 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden min-w-[210px]">
+                            <div className="px-3 py-2 border-b border-gray-100 bg-gray-50">
+                              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Print Options</span>
+                            </div>
+                            <button
+                              onClick={() => { printInvoice(viewingBooking, 'simple'); setPrintDropdownId(null); }}
+                              className="flex items-center gap-2.5 w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 border-b border-gray-100 text-left transition-colors"
+                            >
+                              <Printer className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                              <div>
+                                <div className="font-semibold text-gray-800">Simple Invoice</div>
+                                <div className="text-xs text-gray-400">Basic booking details</div>
+                              </div>
+                            </button>
+                            <button
+                              onClick={() => { printInvoice(viewingBooking, 'full'); setPrintDropdownId(null); }}
+                              className="flex items-center gap-2.5 w-full px-4 py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-50 text-left transition-colors"
+                            >
+                              <svg className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                              <div>
+                                <div className="font-semibold">Full Details</div>
+                                <div className="text-xs text-indigo-400">Includes Visa &amp; Ticket info</div>
+                              </div>
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => printInvoice(viewingBooking, 'simple')}
+                      className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200"
+                    >
+                      <Printer className="w-4 h-4 mr-2" />
+                      Print Invoice
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowViewModal(false)}
                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
