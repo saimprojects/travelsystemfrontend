@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -23,10 +24,19 @@ const LegacyDashboardRedirect = ({ to }) => {
   return <Navigate to={`${to}${search}`} replace />;
 };
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [pathname]);
+  return null;
+};
+
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <Toaster position="top-right" />
         <Routes>
           {/* Public Routes — wrapped in PublicLayout (Navbar + Footer + RegisterPopup) */}
