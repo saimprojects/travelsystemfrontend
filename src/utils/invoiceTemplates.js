@@ -169,7 +169,35 @@ export const buildClassicTemplate = (invoiceData) => `<!DOCTYPE html><html lang=
     .action-buttons{position:fixed;top:16px;right:16px;display:flex;gap:8px;z-index:999}
     .action-button{padding:9px 18px;border:none;border-radius:7px;cursor:pointer;font-weight:600;font-size:13px;display:flex;align-items:center;color:#fff;gap:4px}
     .btn-print{background:#4f46e5}.btn-pdf{background:#3b82f6}.btn-wa{background:#25D366}
-    @media print{.action-buttons,.no-print{display:none!important}.wrap{box-shadow:none;border-radius:0}.body{padding:16px 20px}.top-bar{padding:16px 20px}.contact-strip{padding:6px 20px}}
+    @media print{
+      .action-buttons,.no-print{display:none!important}
+      @page{margin:8mm}
+      .wrap{box-shadow:none;border-radius:0}
+      .top-bar{padding:10px 18px}
+      .logo-box{width:46px;height:46px}
+      .agency-name{font-size:15px}
+      .invoice-title h1{font-size:24px;letter-spacing:2px}
+      .contact-strip{padding:4px 18px;font-size:11px;gap:16px}
+      .body{padding:10px 18px}
+      .meta-row{margin-bottom:10px}
+      .meta-box{padding:9px 12px}
+      .meta-box h3{margin-bottom:5px}
+      .meta-box p{font-size:11px;margin-bottom:2px}
+      .meta-box .big{font-size:14px}
+      table{margin:8px 0}
+      table th{padding:6px 10px}
+      table td{padding:7px 10px;font-size:12px}
+      .totals{margin-top:8px}
+      .t-row{padding:6px 14px;font-size:12px}
+      .t-row:last-child{padding:8px 14px}
+      .t-row:last-child span{font-size:13px}
+      .pay-grid{margin-top:8px;gap:8px}
+      .pay-card{padding:9px 12px}
+      .pay-card label{font-size:10px;margin-bottom:3px}
+      .pay-card .val{font-size:14px}
+      .note{margin-top:8px;padding:8px 12px;font-size:11px}
+      .footer{margin-top:8px;padding:7px 18px}
+    }
   </style></head><body>
   ${buildInvoiceActions(invoiceData)}
   <div class="wrap">
@@ -494,7 +522,7 @@ export const buildMinimalTemplate = (invoiceData) => `<!DOCTYPE html><html lang=
   <meta charset="UTF-8"><title>Invoice ${invoiceData.invoiceNo}</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    @page{size:A4 portrait;margin:16mm}
+    @page{size:A4 portrait;margin:10mm}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#18181b;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .wrap{max-width:740px;margin:0 auto;padding:40px}
     .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px}
@@ -537,7 +565,31 @@ export const buildMinimalTemplate = (invoiceData) => `<!DOCTYPE html><html lang=
     .action-buttons{position:fixed;top:16px;right:16px;display:flex;gap:8px;z-index:999}
     .action-button{padding:9px 18px;border:none;border-radius:7px;cursor:pointer;font-weight:600;font-size:13px;display:flex;align-items:center;color:#fff;gap:4px}
     .btn-print{background:#18181b}.btn-pdf{background:#3f3f46}.btn-wa{background:#25D366}
-    @media print{.action-buttons,.no-print{display:none!important}.wrap{padding:20px}}
+    @media print{
+      .action-buttons,.no-print{display:none!important}
+      @page{margin:8mm}
+      .wrap{padding:16px}
+      .header{margin-bottom:14px}
+      .logo-circle{width:38px;height:38px}
+      .agency-name{font-size:13px}
+      .invoice-label{font-size:28px;letter-spacing:3px}
+      .divider{margin-bottom:12px}
+      .meta-row{margin-bottom:14px}
+      .bill-block .name{font-size:13px}
+      .bill-block .info{font-size:11px}
+      .details-block .det-row{font-size:11px;margin-bottom:2px}
+      table{margin-bottom:10px}
+      table thead tr th{padding-bottom:6px;font-size:8px}
+      table td{padding:8px 0;font-size:12px}
+      .subtotals{padding-top:10px;margin-bottom:12px;gap:3px}
+      .sub-row{font-size:12px;gap:24px}
+      .sub-row.total-row .sk{font-size:13px}
+      .sub-row.total-row .sv{font-size:15px}
+      .pay-section{padding:12px 16px;gap:12px;margin-bottom:12px}
+      .pay-item .pv{font-size:13px}
+      .note{margin-bottom:12px;padding:8px 12px;font-size:11px}
+      .footer-line{padding-top:10px;font-size:10px}
+    }
   </style></head><body>
   ${buildInvoiceActions(invoiceData)}
   <div class="wrap">
