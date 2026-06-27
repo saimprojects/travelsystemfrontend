@@ -1,9 +1,9 @@
-// App.jsx - Add new routes
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
+import PublicLayout from './components/PublicLayout';
 import HomePage from './pages/HomePage';
 import Features from './pages/Features';
 import Pricing from './pages/Pricing';
@@ -29,15 +29,19 @@ function App() {
       <Router>
         <Toaster position="top-right" />
         <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/features" element={<Features />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
+          {/* Public Routes — wrapped in PublicLayout (Navbar + Footer + RegisterPopup) */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+          </Route>
+
+          {/* Auth */}
           <Route path="/login" element={<Login />} />
 
-          {/* Legacy protected URLs */}
+          {/* Legacy redirects */}
           <Route path="/settings" element={<LegacyDashboardRedirect to="/dashboard/settings" />} />
           <Route path="/services" element={<LegacyDashboardRedirect to="/dashboard/services" />} />
           <Route path="/clients" element={<LegacyDashboardRedirect to="/dashboard/clients" />} />
@@ -45,7 +49,7 @@ function App() {
           <Route path="/bookings/:id" element={<LegacyDashboardRedirect to="/dashboard/bookings" />} />
           <Route path="/onboard" element={<LegacyDashboardRedirect to="/dashboard/onboard" />} />
           <Route path="/analytics" element={<LegacyDashboardRedirect to="/dashboard/analytics" />} />
-          
+
           {/* Protected Routes */}
           <Route
             path="/dashboard"
@@ -56,7 +60,6 @@ function App() {
             }
           >
             <Route index element={<Dashboard />} />
-            
             <Route
               path="settings"
               element={
@@ -65,7 +68,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            
             <Route
               path="services"
               element={
@@ -74,7 +76,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            
             <Route
               path="clients"
               element={
@@ -83,7 +84,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            
             <Route
               path="bookings"
               element={
@@ -92,12 +92,10 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path="bookings/:id"
               element={<Navigate to="/dashboard/bookings" replace />}
             />
-            
             <Route
               path="onboard"
               element={
@@ -106,7 +104,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            
             <Route
               path="analytics"
               element={
@@ -116,8 +113,8 @@ function App() {
               }
             />
           </Route>
-          
-          {/* Catch all route */}
+
+          {/* Catch all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

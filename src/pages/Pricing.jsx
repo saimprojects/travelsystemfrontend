@@ -1,255 +1,257 @@
-// src/pages/Pricing.jsx
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { CheckCircle, Zap, Award, Calendar, HelpCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { CheckCircle, X, Zap, Award, Calendar, HelpCircle, ArrowRight, Sparkles } from 'lucide-react';
 
-const Pricing = () => {
-  const [billingCycle, setBillingCycle] = useState('monthly');
+const PACKAGES = [
+  {
+    id: 'weekly',
+    name: 'Starter',
+    desc: 'Perfect for small agencies getting started',
+    monthlyPrice: '1,399',
+    yearlyPrice: '13,990',
+    period: { monthly: 'week', yearly: 'year' },
+    icon: Calendar,
+    gradient: 'from-slate-500 to-slate-600',
+    features: ['Up to 3 agents', 'Basic booking management', 'Client database', 'Email support', 'Basic reports', 'Mobile access'],
+    limitations: ['No API access', 'No multi-branch', 'Basic analytics only'],
+    popular: false,
+  },
+  {
+    id: 'monthly',
+    name: 'Professional',
+    desc: 'Ideal for growing agencies with multiple services',
+    monthlyPrice: '4,599',
+    yearlyPrice: '45,990',
+    period: { monthly: 'month', yearly: 'year' },
+    icon: Zap,
+    gradient: 'from-blue-600 to-violet-600',
+    features: ['Up to 10 agents', 'Advanced booking system', 'Umrah & Hajj packages', 'Visa processing', 'Ticketing system', 'Multi-branch support', 'Priority support', 'API access', 'Advanced analytics', 'Commission automation'],
+    limitations: [],
+    popular: true,
+    badge: 'Most Popular',
+    savings: 'Save PKR 1,000/month',
+  },
+  {
+    id: 'yearly',
+    name: 'Enterprise',
+    desc: 'For large agencies with complex requirements',
+    monthlyPrice: '50,000',
+    yearlyPrice: '500,000',
+    period: { monthly: 'month', yearly: 'year' },
+    icon: Award,
+    gradient: 'from-amber-500 to-orange-500',
+    features: ['Unlimited agents', 'Unlimited branches', 'Custom integrations', 'Dedicated account manager', '24/7 phone support', 'SLA guarantee', 'Custom development', 'White labeling', 'Training sessions', 'API access', 'Advanced security'],
+    limitations: [],
+    popular: false,
+    savings: 'Save PKR 5,499+/year',
+  },
+];
 
-  const packages = [
-    {
-      name: "Starter",
-      description: "Perfect for small agencies just getting started",
-      monthlyPrice: "1,399",
-      yearlyPrice: "13,990",
-      icon: <Calendar className="w-6 h-6" />,
-      features: [
-        "Up to 3 agents",
-        "Basic booking management",
-        "Client database",
-        "Email support",
-        "Basic reports",
-        "Mobile access"
-      ],
-      limitations: [
-        "No API access",
-        "No multi-branch",
-        "Basic analytics"
-      ],
-      cta: "Start Free Trial",
-      popular: false,
-      color: "gray"
-    },
-    {
-      name: "Professional",
-      description: "Ideal for growing agencies with multiple services",
-      monthlyPrice: "4,599",
-      yearlyPrice: "45,990",
-      icon: <Zap className="w-6 h-6" />,
-      features: [
-        "Up to 10 agents",
-        "Advanced booking system",
-        "Umrah & Hajj packages",
-        "Visa processing",
-        "Ticketing system",
-        "Multi-branch support",
-        "Priority support",
-        "API access",
-        "Advanced analytics",
-        "Commission automation"
-      ],
-      limitations: [],
-      cta: "Start Free Trial",
-      popular: true,
-      color: "blue",
-      savings: "Save 1000/month"
-    },
-    {
-      name: "Enterprise",
-      description: "For large agencies with complex requirements",
-      monthlyPrice: "50,000",
-      yearlyPrice: "500,000",
-      icon: <Award className="w-6 h-6" />,
-      features: [
-        "Unlimited agents",
-        "Unlimited branches",
-        "Custom integrations",
-        "Dedicated account manager",
-        "24/7 phone support",
-        "SLA guarantee",
-        "Custom development",
-        "White labeling",
-        "Training sessions",
-        "API access",
-        "Advanced security"
-      ],
-      limitations: [],
-      cta: "Contact Sales",
-      popular: false,
-      color: "purple",
-      savings: "Save 5499+/year"
-    }
-  ];
+const FAQS = [
+  { q: 'Can I change plans later?', a: 'Yes, upgrade or downgrade at any time. Changes apply to your next billing cycle.' },
+  { q: 'Is there a setup fee?', a: 'No setup fees at all. You only pay for your subscription.' },
+  { q: 'What payment methods do you accept?', a: 'All major credit cards, bank transfers, and JazzCash/EasyPaisa for Pakistani customers.' },
+  { q: 'Do you offer refunds?', a: 'Yes — 14-day money-back guarantee if you\'re not satisfied.' },
+];
 
-  const faqs = [
-    {
-      question: "Can I change plans later?",
-      answer: "Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle."
-    },
-    {
-      question: "Is there a setup fee?",
-      answer: "No, there are no setup fees. You only pay for your subscription."
-    },
-    {
-      question: "What payment methods do you accept?",
-      answer: "We accept all major credit cards, bank transfers, and JazzCash/EasyPaisa for Pakistani customers."
-    },
-    {
-      question: "Do you offer refunds?",
-      answer: "Yes, we offer a 14-day money-back guarantee if you're not satisfied with our service."
-    }
-  ];
+const fadeUp = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0 } };
+
+export default function Pricing() {
+  const { onRegisterOpen } = useOutletContext();
+  const [billing, setBilling] = useState('monthly');
+  const [openFaq, setOpenFaq] = useState(null);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            Simple, Transparent Pricing
-          </h1>
-          <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-            Choose the perfect plan for your agency. No hidden fees.
-          </p>
-          
-          {/* Billing Toggle */}
-          <div className="mt-8 inline-flex items-center bg-blue-500/30 rounded-full p-1">
-            <button
-              onClick={() => setBillingCycle('monthly')}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition ${
-                billingCycle === 'monthly'
-                  ? 'bg-white text-blue-600'
-                  : 'text-white hover:bg-blue-500/50'
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBillingCycle('yearly')}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition ${
-                billingCycle === 'yearly'
-                  ? 'bg-white text-blue-600'
-                  : 'text-white hover:bg-blue-500/50'
-              }`}
-            >
-              Yearly <span className="text-xs ml-1">Save 20%</span>
-            </button>
-          </div>
+    <div className="bg-slate-950 text-white overflow-x-hidden">
+
+      {/* Hero */}
+      <section className="relative pt-32 pb-16 px-4 sm:px-6 text-center overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-blue-600/10 rounded-full blur-[100px]" />
+        </div>
+        <div className="relative max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium mb-6"
+          >
+            <Sparkles className="w-3 h-3" /> Simple, Transparent Pricing
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-5"
+          >
+            Plans for Every
+            <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent"> Agency Size</span>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+            className="text-slate-400 text-lg mb-8"
+          >
+            No hidden fees. Cancel anytime. Start with a free 7-day trial.
+          </motion.p>
+
+          {/* Billing toggle */}
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+            className="inline-flex items-center gap-1 bg-white/[0.05] border border-white/[0.08] rounded-full p-1"
+          >
+            {['monthly', 'yearly'].map((b) => (
+              <button
+                key={b}
+                onClick={() => setBilling(b)}
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  billing === b
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {b === 'monthly' ? 'Monthly' : 'Yearly'}
+                {b === 'yearly' && <span className="ml-1.5 text-xs text-emerald-400 font-semibold">–20%</span>}
+              </button>
+            ))}
+          </motion.div>
         </div>
       </section>
 
       {/* Pricing Cards */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8">
-            {packages.map((pkg, index) => (
-              <div
-                key={index}
-                className={`relative bg-white rounded-2xl shadow-xl overflow-hidden ${
-                  pkg.popular ? 'ring-2 ring-blue-500 transform scale-105' : ''
-                }`}
+      <section className="pb-24 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 items-start">
+            {PACKAGES.map((pkg, i) => (
+              <motion.div
+                key={pkg.id}
+                variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className={`relative rounded-2xl overflow-hidden ${
+                  pkg.popular
+                    ? 'border border-blue-500/50 shadow-2xl shadow-blue-500/20'
+                    : 'border border-white/[0.07]'
+                } bg-white/[0.03]`}
               >
                 {pkg.popular && (
-                  <div className="absolute top-0 right-0 bg-blue-500 text-white px-4 py-1 text-sm font-semibold rounded-bl-lg">
-                    MOST POPULAR
+                  <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+                )}
+                {pkg.badge && (
+                  <div className="absolute top-4 right-4">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/20 border border-blue-500/30 text-blue-300">
+                      {pkg.badge}
+                    </span>
                   </div>
                 )}
-                
-                <div className="p-8">
-                  <div className={`w-12 h-12 rounded-lg bg-${pkg.color}-100 flex items-center justify-center mb-4`}>
-                    <div className={`text-${pkg.color}-600`}>{pkg.icon}</div>
+                <div className="p-7">
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${pkg.gradient} flex items-center justify-center mb-4 shadow-lg`}>
+                    <pkg.icon className="w-5 h-5 text-white" />
                   </div>
-                  
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{pkg.name}</h3>
-                  <p className="text-gray-600 mb-4">{pkg.description}</p>
-                  
-                  <div className="mb-4">
-                    <span className="text-4xl font-bold text-gray-900">
-                      PKR {billingCycle === 'monthly' ? pkg.monthlyPrice : pkg.yearlyPrice}
+                  <h3 className="text-xl font-bold text-white mb-1">{pkg.name}</h3>
+                  <p className="text-slate-500 text-sm mb-5">{pkg.desc}</p>
+                  <div className="mb-2">
+                    <span className="text-4xl font-extrabold text-white">
+                      PKR {billing === 'monthly' ? pkg.monthlyPrice : pkg.yearlyPrice}
                     </span>
-                    <span className="text-gray-500 ml-2">
-                      /{billingCycle === 'monthly' ? 'mo' : 'yr'}
-                    </span>
+                    <span className="text-slate-500 text-sm ml-1.5">/{pkg.period[billing]}</span>
                   </div>
-                  
                   {pkg.savings && (
-                    <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold inline-block mb-6">
+                    <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium mb-5">
                       {pkg.savings}
                     </div>
                   )}
-                  
-                  <ul className="space-y-3 mb-8">
-                    {pkg.features.map((feature, i) => (
-                      <li key={i} className="flex items-start text-gray-600">
-                        <CheckCircle className="text-green-500 mr-2 flex-shrink-0 mt-1" size={18} />
-                        <span>{feature}</span>
-                      </li>
+
+                  <div className={`mt-5 ${!pkg.savings ? 'mt-7' : ''}`}>
+                    <button
+                      onClick={onRegisterOpen}
+                      className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 text-sm ${
+                        pkg.popular
+                          ? 'bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5'
+                          : 'bg-white/[0.06] border border-white/[0.1] text-slate-300 hover:bg-white/[0.1] hover:text-white'
+                      }`}
+                    >
+                      {pkg.id === 'yearly' ? 'Contact Sales' : 'Start Free Trial'}
+                    </button>
+                  </div>
+
+                  <div className="mt-6 pt-6 border-t border-white/[0.06] space-y-2.5">
+                    {pkg.features.map((f, j) => (
+                      <div key={j} className="flex items-start gap-2.5 text-sm text-slate-300">
+                        <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        {f}
+                      </div>
                     ))}
-                    {pkg.limitations.map((limitation, i) => (
-                      <li key={i} className="flex items-start text-gray-400">
-                        <span className="mr-2">✕</span>
-                        <span>{limitation}</span>
-                      </li>
+                    {pkg.limitations.map((l, j) => (
+                      <div key={j} className="flex items-start gap-2.5 text-sm text-slate-600">
+                        <X className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        {l}
+                      </div>
                     ))}
-                  </ul>
-                  
-                  <Link
-                    to={pkg.name === 'Enterprise' ? '/contact' : '/register-agency'}
-                    className={`block text-center px-6 py-3 rounded-lg font-semibold transition ${
-                      pkg.popular
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                    }`}
-                  >
-                    {pkg.cta}
-                  </Link>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Frequently Asked Questions
-          </h2>
-          
-          <div className="space-y-6">
-            {faqs.map((faq, index) => (
-              <div key={index} className="bg-gray-50 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                  <HelpCircle className="text-blue-600 mr-2" size={20} />
-                  {faq.question}
-                </h3>
-                <p className="text-gray-600 ml-7">{faq.answer}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Need a Custom Plan?
-          </h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Contact us for a tailored solution that fits your specific requirements
-          </p>
-          <Link
-            to="/contact"
-            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+      {/* FAQ */}
+      <section className="py-20 px-4 sm:px-6 border-y border-white/[0.06] bg-white/[0.015]">
+        <div className="max-w-2xl mx-auto">
+          <motion.div
+            variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
+            className="text-center mb-10"
           >
-            Talk to Sales
-          </Link>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-3">
+              Frequently Asked
+              <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent"> Questions</span>
+            </h2>
+          </motion.div>
+          <div className="space-y-3">
+            {FAQS.map((faq, i) => (
+              <motion.div
+                key={i}
+                variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
+                transition={{ delay: i * 0.06 }}
+                className="bg-white/[0.03] border border-white/[0.07] rounded-xl overflow-hidden"
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between px-5 py-4 text-left"
+                >
+                  <span className="text-sm font-medium text-white flex items-center gap-2.5">
+                    <HelpCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                    {faq.q}
+                  </span>
+                  <span className={`text-slate-500 text-lg leading-none transition-transform duration-200 ${openFaq === i ? 'rotate-45' : ''}`}>+</span>
+                </button>
+                {openFaq === i && (
+                  <div className="px-5 pb-4 text-sm text-slate-400 leading-relaxed pl-9">
+                    {faq.a}
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
+
+      {/* Bottom CTA */}
+      <section className="py-24 px-4 sm:px-6">
+        <div className="max-w-3xl mx-auto text-center">
+          <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-3">
+              Need a Custom Plan?
+            </h2>
+            <p className="text-slate-400 mb-8">Contact us for a tailored solution that fits your specific requirements.</p>
+            <Link
+              to="/contact"
+              className="group inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-semibold rounded-xl shadow-xl shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all duration-200"
+            >
+              Talk to Sales
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
     </div>
   );
-};
-
-export default Pricing;
+}

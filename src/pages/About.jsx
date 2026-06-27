@@ -1,146 +1,203 @@
-// src/pages/About.jsx
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  Users, Target, Award, Heart, 
-  Mail, Phone, Globe, MapPin 
-} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Target, Award, Heart, Users, Mail, Phone, Globe, Sparkles, CheckCircle } from 'lucide-react';
 
-const About = () => {
+const VALUES = [
+  { icon: Heart, color: 'from-rose-500 to-pink-500', title: 'Customer First', desc: 'Every feature we build starts with a real agency pain point.' },
+  { icon: Award, color: 'from-amber-500 to-orange-500', title: 'Innovation', desc: 'Constantly evolving — from invoice templates to AI-powered insights.' },
+  { icon: Users, color: 'from-blue-500 to-violet-500', title: 'Integrity', desc: 'Transparent pricing, honest support, and no hidden surprises.' },
+  { icon: Target, color: 'from-emerald-500 to-teal-500', title: 'Excellence', desc: 'We ship things we\'re proud of — every time.' },
+];
+
+const MILESTONES = [
+  { year: '2023', event: 'TravelSaaS founded by Muhammad Saim' },
+  { year: '2024', event: 'Launched with 5 invoice templates & multi-role access' },
+  { year: '2025', event: '500+ agencies onboarded across Pakistan' },
+  { year: '2026', event: 'Enterprise tier + API launched' },
+];
+
+const fadeUp = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0 } };
+
+export default function About() {
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            About TAM
-          </h1>
-          <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-            Empowering travel agencies with cutting-edge technology since 2023
-          </p>
+    <div className="bg-slate-950 text-white overflow-x-hidden">
+
+      {/* Hero */}
+      <section className="relative pt-32 pb-20 px-4 sm:px-6 text-center overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-emerald-600/8 rounded-full blur-[120px]" />
+        </div>
+        <div className="relative max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium mb-6"
+          >
+            <Sparkles className="w-3 h-3" /> Our Story
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-5"
+          >
+            Built for Pakistan's
+            <br />
+            <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+              Travel Industry
+            </span>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+            className="text-slate-400 text-lg max-w-2xl mx-auto"
+          >
+            We started because we saw travel agencies drowning in spreadsheets, WhatsApp chaos,
+            and manual invoices. We built the system we wished existed.
+          </motion.p>
         </div>
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12">
-            <div className="bg-blue-50 p-8 rounded-2xl">
-              <Target className="w-12 h-12 text-blue-600 mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h2>
-              <p className="text-gray-600 leading-relaxed">
-                To revolutionize the travel agency industry by providing an all-in-one, 
-                cloud-based management system that simplifies operations, automates workflows, 
-                and drives growth for travel businesses of all sizes.
-              </p>
-            </div>
-            
-            <div className="bg-indigo-50 p-8 rounded-2xl">
-              <Award className="w-12 h-12 text-indigo-600 mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Vision</h2>
-              <p className="text-gray-600 leading-relaxed">
-                To become the leading SaaS platform for travel agencies across Pakistan 
-                and beyond, enabling thousands of businesses to digitize their operations 
-                and scale efficiently.
-              </p>
-            </div>
-          </div>
+      <section className="py-16 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-5">
+          {[
+            {
+              icon: Target, gradient: 'from-blue-500 to-violet-500', title: 'Our Mission',
+              text: 'To revolutionize the travel agency industry by providing an all-in-one, cloud-based management system that simplifies operations, automates workflows, and drives growth for travel businesses of all sizes.',
+            },
+            {
+              icon: Award, gradient: 'from-amber-500 to-orange-500', title: 'Our Vision',
+              text: 'To become the leading SaaS platform for travel agencies across Pakistan and beyond, enabling thousands of businesses to digitize their operations and scale efficiently.',
+            },
+          ].map((item, i) => (
+            <motion.div
+              key={i}
+              variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-8"
+            >
+              <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-5 shadow-lg`}>
+                <item.icon className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-white mb-3">{item.title}</h2>
+              <p className="text-slate-400 text-sm leading-relaxed">{item.text}</p>
+            </motion.div>
+          ))}
         </div>
       </section>
 
-      {/* Developer Info */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-12 text-white text-center">
-              <h2 className="text-3xl font-bold mb-2">Developed By</h2>
-              <a 
-                href="https://minorgroup.site" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-2xl font-bold hover:underline"
-              >
-                www.minorgroup.site
-              </a>
-            </div>
-            
-            <div className="p-8">
-              <div className="flex items-center justify-center mb-8">
-                <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Users className="w-12 h-12 text-blue-600" />
+      {/* Developer Card */}
+      <section className="py-16 px-4 sm:px-6">
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
+            className="relative rounded-3xl overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-violet-600/10 to-slate-900/80" />
+            <div className="absolute inset-0 border border-white/[0.1] rounded-3xl" />
+            <div className="relative p-8 md:p-12">
+              {/* Top */}
+              <div className="text-center mb-8">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center mx-auto mb-5 shadow-xl shadow-blue-500/30">
+                  <Users className="w-9 h-9 text-white" />
                 </div>
+                <h2 className="text-2xl font-extrabold text-white mb-1">Muhammad Saim</h2>
+                <p className="text-blue-400 font-semibold text-sm mb-1">Founder & Lead Developer</p>
+                <a href="https://minorgroup.site" target="_blank" rel="noreferrer" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+                  minorgroup.site ↗
+                </a>
               </div>
-              
-              <h3 className="text-2xl font-bold text-center text-gray-900 mb-2">
-                Muhammad Saim
-              </h3>
-              <p className="text-center text-blue-600 font-semibold mb-6">
-                CEO & Lead Developer
+
+              <p className="text-slate-300 text-center text-sm leading-relaxed max-w-lg mx-auto mb-8">
+                With a passion for technology and a deep understanding of the travel industry, Muhammad Saim
+                founded TravelSaaS to bridge the gap between traditional agency operations and modern digital
+                solutions. His vision: empower travel businesses with tools that make management seamless and growth inevitable.
               </p>
-              
-              <div className="max-w-2xl mx-auto">
-                <p className="text-gray-600 text-center leading-relaxed mb-8">
-                  With a passion for technology and deep understanding of the travel industry, 
-                  Muhammad Saim founded TAM to bridge the gap between traditional travel agency 
-                  operations and modern digital solutions. His vision is to empower travel 
-                  businesses with tools that make management seamless and growth inevitable.
-                </p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-gray-200 pt-8">
-                  <div className="text-center">
-                    <Mail className="w-5 h-5 text-blue-600 mx-auto mb-2" />
-                    <a href="mailto:saimpkf@gmail.com" className="text-gray-600 hover:text-blue-600">
-                      saimpkf@gmail.com
-                    </a>
-                  </div>
-                  
-                  <div className="text-center">
-                    <Phone className="w-5 h-5 text-blue-600 mx-auto mb-2" />
-                    <a href="tel:+923131471263" className="text-gray-600 hover:text-blue-600">
-                      +92 313 1471263
-                    </a>
-                  </div>
-                  
-                  <div className="text-center">
-                    <Globe className="w-5 h-5 text-blue-600 mx-auto mb-2" />
-                    <a href="https://minorgroup.site" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-blue-600">
-                      minorgroup.site
-                    </a>
-                  </div>
-                </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-white/[0.07] pt-8">
+                {[
+                  { icon: Mail, label: 'saimpkf@gmail.com', href: 'mailto:saimpkf@gmail.com' },
+                  { icon: Phone, label: '+92 313 1471263', href: 'tel:+923131471263' },
+                  { icon: Globe, label: 'minorgroup.site', href: 'https://minorgroup.site' },
+                ].map((c, i) => (
+                  <a
+                    key={i}
+                    href={c.href}
+                    target={c.href.startsWith('http') ? '_blank' : undefined}
+                    rel="noreferrer"
+                    className="flex flex-col items-center gap-2 text-center text-sm text-slate-400 hover:text-white transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center">
+                      <c.icon className="w-4 h-4 text-blue-400" />
+                    </div>
+                    {c.label}
+                  </a>
+                ))}
               </div>
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Timeline */}
+      <section className="py-16 px-4 sm:px-6 border-y border-white/[0.06] bg-white/[0.015]">
+        <div className="max-w-2xl mx-auto">
+          <motion.div
+            variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
+            className="text-center mb-10"
+          >
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+              Our
+              <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent"> Journey</span>
+            </h2>
+          </motion.div>
+          <div className="relative pl-8">
+            <div className="absolute left-3.5 top-0 bottom-0 w-px bg-white/[0.07]" />
+            {MILESTONES.map((m, i) => (
+              <motion.div
+                key={i}
+                variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="relative mb-7 last:mb-0"
+              >
+                <div className="absolute -left-8 top-0.5 w-7 h-7 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                  <CheckCircle className="w-3.5 h-3.5 text-white" />
+                </div>
+                <div className="text-xs text-blue-400 font-bold mb-1">{m.year}</div>
+                <div className="text-sm text-slate-300">{m.event}</div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Values */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Our Core Values
-          </h2>
-          
-          <div className="grid md:grid-cols-4 gap-6">
-            {[
-              { icon: <Heart className="w-8 h-8" />, title: "Customer First", desc: "Your success is our priority" },
-              { icon: <Award className="w-8 h-8" />, title: "Innovation", desc: "Constantly improving and evolving" },
-              { icon: <Users className="w-8 h-8" />, title: "Integrity", desc: "Honest and transparent dealings" },
-              { icon: <Target className="w-8 h-8" />, title: "Excellence", desc: "Delivering the best solutions" }
-            ].map((value, i) => (
-              <div key={i} className="text-center p-6">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
-                  {value.icon}
+      <section className="py-20 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+              Our Core
+              <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent"> Values</span>
+            </h2>
+          </motion.div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {VALUES.map((v, i) => (
+              <motion.div
+                key={i}
+                variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
+                transition={{ delay: i * 0.07 }}
+                className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6 text-center"
+              >
+                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${v.color} flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+                  <v.icon className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">{value.title}</h3>
-                <p className="text-gray-600">{value.desc}</p>
-              </div>
+                <h3 className="text-sm font-bold text-white mb-2">{v.title}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{v.desc}</p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
+
     </div>
   );
-};
-
-export default About;
+}

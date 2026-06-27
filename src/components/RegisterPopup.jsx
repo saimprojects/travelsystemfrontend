@@ -1,512 +1,327 @@
-// components/RegisterPopup.jsx
-import React, { useState, useEffect } from 'react';
-import { 
-  User, Building2, Phone, Mail, 
-  CheckCircle, AlertCircle, X,
-  Smartphone, Calendar, Zap, Award
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  X, User, Building2, Phone, Mail, Smartphone,
+  CheckCircle, AlertCircle, Calendar, Zap, Award, ArrowRight
 } from 'lucide-react';
 
-const RegisterPopup = ({ isOpen, onClose }) => {
-  const [formData, setFormData] = useState({
-    yourName: '',
-    agencyName: '',
-    whatsappNumber: '',
-    phoneNumber: '',
-    package: '',
-    email: ''
-  });
+const PACKAGES = [
+  {
+    id: 'weekly',
+    name: 'Starter',
+    price: '1,399',
+    period: 'week',
+    savings: null,
+    icon: Calendar,
+    gradient: 'from-slate-500 to-slate-600',
+    features: ['All Access Features', '7 Days Full Access', 'Basic Support'],
+  },
+  {
+    id: 'monthly',
+    name: 'Professional',
+    price: '4,599',
+    period: 'month',
+    savings: 'Save PKR 1,000',
+    icon: Zap,
+    gradient: 'from-blue-600 to-violet-600',
+    features: ['All Access Features', '30 Days Full Access', 'Priority Support', 'Multi-Branch Access'],
+    popular: true,
+  },
+  {
+    id: 'yearly',
+    name: 'Enterprise',
+    price: '50,000',
+    period: 'year',
+    savings: 'Save PKR 5,499+',
+    icon: Award,
+    gradient: 'from-amber-500 to-orange-500',
+    features: ['All Access Features', '365 Days Full Access', '24/7 Premium Support', 'Unlimited Branches', 'API Access'],
+  },
+];
 
+const getPackageDetails = (v) => ({
+  weekly: 'Starter — 1,399 PKR/week — All Access 7 Days',
+  monthly: 'Professional — 4,599 PKR/month — All Access + Priority Support',
+  yearly: 'Enterprise — 50,000 PKR/year — All Access + Unlimited',
+}[v] || v);
+
+export default function RegisterPopup({ isOpen, onClose }) {
+  const [formData, setFormData] = useState({ yourName: '', agencyName: '', whatsappNumber: '', phoneNumber: '', package: '', email: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
   const [errors, setErrors] = useState({});
 
-  // Close on escape key
   useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  // Prevent body scroll when popup is open
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    document.body.style.overflow = isOpen ? 'hidden' : 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
-
-  if (!isOpen) return null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    if (name === 'whatsappNumber' && !formData.phoneNumber) {
-      setFormData(prev => ({
-        ...prev,
-        phoneNumber: value
-      }));
-    }
-
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
+    setFormData(prev => {
+      const next = { ...prev, [name]: value };
+      if (name === 'whatsappNumber' && !prev.phoneNumber) next.phoneNumber = value;
+      return next;
+    });
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.yourName.trim()) {
-      newErrors.yourName = 'Name is required';
-    }
-
-    if (!formData.agencyName.trim()) {
-      newErrors.agencyName = 'Agency name is required';
-    }
-
-    if (!formData.whatsappNumber.trim()) {
-      newErrors.whatsappNumber = 'WhatsApp number is required';
-    } else if (!/^[0-9+\-\s]+$/.test(formData.whatsappNumber)) {
-      newErrors.whatsappNumber = 'Invalid phone number format';
-    }
-
-    if (!formData.package) {
-      newErrors.package = 'Please select a package';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const validate = () => {
+    const errs = {};
+    if (!formData.yourName.trim()) errs.yourName = 'Name is required';
+    if (!formData.agencyName.trim()) errs.agencyName = 'Agency name is required';
+    if (!formData.whatsappNumber.trim()) errs.whatsappNumber = 'WhatsApp number is required';
+    else if (!/^[0-9+\-\s]+$/.test(formData.whatsappNumber)) errs.whatsappNumber = 'Invalid phone format';
+    if (!formData.package) errs.package = 'Please select a package';
+    if (!formData.email.trim()) errs.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errs.email = 'Invalid email format';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validate()) return;
     setIsSubmitting(true);
     setSubmitStatus(null);
 
-    // FormSubmit.co configuration
-    const formEndpoint = 'https://formsubmit.co/ajax/saimpkf@gmail.com';
-    
-    // Prepare data with proper formatting
-    const formDataToSend = {
-      _subject: `New Agency Registration: ${formData.agencyName}`,
-      name: formData.yourName,
-      agency_name: formData.agencyName,
-      whatsapp_number: formData.whatsappNumber,
-      phone_number: formData.phoneNumber || formData.whatsappNumber,
-      selected_package: getPackageDetails(formData.package),
-      package_type: formData.package,
-      email: formData.email,
-      _template: 'table',
-      _captcha: 'false',
-      _next: window.location.href
-    };
-
     try {
-      const response = await fetch(formEndpoint, {
+      const response = await fetch('https://formsubmit.co/ajax/saimpkf@gmail.com', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(formDataToSend)
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          _subject: `New Agency Registration: ${formData.agencyName}`,
+          name: formData.yourName,
+          agency_name: formData.agencyName,
+          whatsapp_number: formData.whatsappNumber,
+          phone_number: formData.phoneNumber || formData.whatsappNumber,
+          selected_package: getPackageDetails(formData.package),
+          email: formData.email,
+          _template: 'table',
+          _captcha: 'false',
+          _next: window.location.href,
+        }),
       });
-
       const result = await response.json();
-
       if (response.ok && result.success) {
-        setSubmitStatus({
-          type: 'success',
-          message: 'Registration successful! We will contact you soon.'
-        });
-        
-        // Reset form after 2 seconds and close popup
+        setSubmitStatus({ type: 'success', message: 'Registration successful! We\'ll contact you shortly.' });
         setTimeout(() => {
-          setFormData({
-            yourName: '',
-            agencyName: '',
-            whatsappNumber: '',
-            phoneNumber: '',
-            package: '',
-            email: ''
-          });
+          setFormData({ yourName: '', agencyName: '', whatsappNumber: '', phoneNumber: '', package: '', email: '' });
           onClose();
-        }, 2000);
+        }, 2500);
       } else {
-        setSubmitStatus({
-          type: 'error',
-          message: 'Something went wrong. Please try again.'
-        });
+        setSubmitStatus({ type: 'error', message: 'Something went wrong. Please try again.' });
       }
-    } catch (error) {
-      console.error('Form submission error:', error);
-      setSubmitStatus({
-        type: 'error',
-        message: 'Network error. Please check your connection.'
-      });
+    } catch {
+      setSubmitStatus({ type: 'error', message: 'Network error. Please check your connection.' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getPackageDetails = (packageValue) => {
-    const packages = {
-      weekly: 'Weekly Package - 1399 PKR - All Access for One Week',
-      monthly: 'Monthly Package - 4599 PKR - All Access (Save 1000 PKR)',
-      yearly: 'Yearly Access - 50,000 PKR - All Access (Save 5499+ PKR)'
-    };
-    return packages[packageValue] || packageValue;
-  };
-
-  const packages = [
-    {
-      id: 'weekly',
-      name: 'Weekly Package',
-      price: '1,399',
-      period: 'week',
-      savings: null,
-      icon: <Calendar className="w-5 h-5" />,
-      features: [
-        'All Access Features',
-        '7 Days Full Access',
-        'Basic Support'
-      ],
-      highlight: false
-    },
-    {
-      id: 'monthly',
-      name: 'Monthly Package',
-      price: '4,599',
-      period: 'month',
-      savings: 'Save 1,000',
-      icon: <Zap className="w-5 h-5" />,
-      features: [
-        'All Access Features',
-        '30 Days Full Access',
-        'Priority Support',
-        'Multi-Branch Access'
-      ],
-      highlight: true
-    },
-    {
-      id: 'yearly',
-      name: 'Yearly Access',
-      price: '50,000',
-      period: 'year',
-      savings: 'Save 5,499+',
-      icon: <Award className="w-5 h-5" />,
-      features: [
-        'All Access Features',
-        '365 Days Full Access',
-        '24/7 Premium Support',
-        'Unlimited Branches',
-        'API Access'
-      ],
-      highlight: false
-    }
-  ];
-
   return (
-    <>
-      {/* Backdrop with blur effect */}
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300"
-        onClick={onClose}
-      />
-      
-      {/* Popup Container - Centered with animation */}
-      <div className="fixed inset-0 z-50 overflow-y-auto">
-        <div className="min-h-screen px-4 flex items-center justify-center">
-          {/* Popup Content with Slide-up Animation */}
-          <div 
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 animate-slideUp"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Register Your Agency</h2>
-                <p className="text-sm text-gray-600">Start your 7-day free trial</p>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <X className="w-6 h-6 text-gray-500" />
-              </button>
-            </div>
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+            onClick={onClose}
+          />
 
-            {/* Form Content */}
-            <div className="p-6">
-              <form 
-                action="https://formsubmit.co/saimpkf@gmail.com" 
-                method="POST"
-                onSubmit={handleSubmit}
-                className="space-y-6"
+          {/* Panel */}
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="min-h-screen px-4 flex items-center justify-center py-8">
+              <motion.div
+                initial={{ opacity: 0, y: 32, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 16, scale: 0.97 }}
+                transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className="relative w-full max-w-2xl bg-slate-900 border border-white/[0.1] rounded-3xl shadow-2xl overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
               >
-                {/* FormSubmit.co Hidden Fields */}
-                <input type="hidden" name="_template" value="table" />
-                <input type="hidden" name="_captcha" value="false" />
-                <input type="hidden" name="_next" value={window.location.href} />
-                <input type="hidden" name="_subject" value="New Agency Registration - TAM" />
-                
-                {/* Success/Error Message */}
-                {submitStatus && (
-                  <div className={`p-4 rounded-lg ${
-                    submitStatus.type === 'success' 
-                      ? 'bg-green-50 text-green-800 border border-green-200'
-                      : 'bg-red-50 text-red-800 border border-red-200'
-                  }`}>
-                    <div className="flex items-center">
-                      {submitStatus.type === 'success' ? (
-                        <CheckCircle className="w-5 h-5 mr-2" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 mr-2" />
+                {/* Top gradient strip */}
+                <div className="h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+
+                {/* Header */}
+                <div className="flex items-center justify-between px-7 py-5 border-b border-white/[0.07]">
+                  <div>
+                    <h2 className="text-xl font-bold text-white">Register Your Agency</h2>
+                    <p className="text-sm text-slate-400 mt-0.5">Start your 7-day free trial — no credit card needed</p>
+                  </div>
+                  <button
+                    onClick={onClose}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/[0.05] border border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.1] transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="p-7">
+                  <form
+                    action="https://formsubmit.co/saimpkf@gmail.com"
+                    method="POST"
+                    onSubmit={handleSubmit}
+                    className="space-y-6"
+                  >
+                    <input type="hidden" name="_template" value="table" />
+                    <input type="hidden" name="_captcha" value="false" />
+                    <input type="hidden" name="_next" value={typeof window !== 'undefined' ? window.location.href : ''} />
+                    <input type="hidden" name="_subject" value="New Agency Registration — TravelSaaS" />
+
+                    {/* Status */}
+                    <AnimatePresence>
+                      {submitStatus && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                          className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm ${
+                            submitStatus.type === 'success'
+                              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                              : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                          }`}
+                        >
+                          {submitStatus.type === 'success'
+                            ? <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                            : <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                          }
+                          {submitStatus.message}
+                        </motion.div>
                       )}
-                      {submitStatus.message}
-                    </div>
-                  </div>
-                )}
+                    </AnimatePresence>
 
-                {/* Package Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Package <span className="text-red-500">*</span>
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {packages.map((pkg) => (
-                      <label
-                        key={pkg.id}
-                        className={`cursor-pointer transition-all duration-200 ${
-                          formData.package === pkg.id ? 'ring-2 ring-blue-500' : ''
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="package"
-                          value={pkg.id}
-                          checked={formData.package === pkg.id}
-                          onChange={handleChange}
-                          className="hidden"
-                          required
-                        />
-                        <div className={`p-3 rounded-lg border-2 ${
-                          formData.package === pkg.id
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}>
-                          <div className="flex items-center mb-2">
-                            <div className={`p-1.5 rounded-lg mr-2 ${
-                              formData.package === pkg.id ? 'bg-blue-500 text-white' : 'bg-gray-100'
-                            }`}>
-                              {pkg.icon}
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-sm">{pkg.name}</h3>
-                              <p className="text-lg font-bold">
-                                {pkg.price} <span className="text-xs font-normal">PKR</span>
-                              </p>
-                            </div>
-                          </div>
-                          {pkg.savings && (
-                            <span className="inline-block bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
-                              {pkg.savings}
-                            </span>
-                          )}
-                        </div>
+                    {/* Package Selection */}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+                        Select Plan <span className="text-red-400">*</span>
                       </label>
-                    ))}
-                  </div>
-                  {errors.package && (
-                    <p className="mt-1 text-sm text-red-500">{errors.package}</p>
-                  )}
+                      <div className="grid grid-cols-3 gap-3">
+                        {PACKAGES.map((pkg) => (
+                          <label key={pkg.id} className="cursor-pointer">
+                            <input
+                              type="radio" name="package" value={pkg.id}
+                              checked={formData.package === pkg.id}
+                              onChange={handleChange}
+                              className="sr-only"
+                              required
+                            />
+                            <div className={`relative rounded-xl border p-3.5 transition-all duration-200 ${
+                              formData.package === pkg.id
+                                ? 'border-blue-500/60 bg-blue-500/10 shadow-lg shadow-blue-500/10'
+                                : 'border-white/[0.07] bg-white/[0.02] hover:border-white/[0.14] hover:bg-white/[0.04]'
+                            }`}>
+                              {pkg.popular && (
+                                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-gradient-to-r from-blue-600 to-violet-600 text-white text-[10px] font-bold whitespace-nowrap">
+                                  Popular
+                                </div>
+                              )}
+                              <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${pkg.gradient} flex items-center justify-center mb-2.5 shadow-md`}>
+                                <pkg.icon className="w-4 h-4 text-white" />
+                              </div>
+                              <div className="text-sm font-bold text-white">{pkg.name}</div>
+                              <div className="text-xs text-slate-400 mt-0.5">PKR {pkg.price}<span className="text-slate-600">/{pkg.period}</span></div>
+                              {pkg.savings && (
+                                <div className="mt-1.5 text-[10px] font-semibold text-emerald-400">{pkg.savings}</div>
+                              )}
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                      {errors.package && <p className="mt-1.5 text-xs text-red-400">{errors.package}</p>}
+                    </div>
+
+                    {/* Fields */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {[
+                        { name: 'yourName', label: 'Your Name', icon: User, type: 'text', placeholder: 'Full name', required: true },
+                        { name: 'agencyName', label: 'Agency Name', icon: Building2, type: 'text', placeholder: 'Agency name', required: true },
+                        { name: 'whatsappNumber', label: 'WhatsApp Number', icon: Smartphone, type: 'tel', placeholder: '+92 300 1234567', required: true },
+                        { name: 'phoneNumber', label: 'Phone (Optional)', icon: Phone, type: 'tel', placeholder: 'Same as WhatsApp if empty', required: false },
+                      ].map((field) => (
+                        <div key={field.name}>
+                          <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                            {field.label} {field.required && <span className="text-red-400">*</span>}
+                          </label>
+                          <div className="relative">
+                            <field.icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+                            <input
+                              type={field.type}
+                              name={field.name}
+                              value={formData[field.name]}
+                              onChange={handleChange}
+                              required={field.required}
+                              placeholder={field.placeholder}
+                              className={`w-full pl-9 pr-3 py-2.5 text-sm rounded-xl text-white placeholder-slate-600 focus:outline-none transition-colors ${
+                                errors[field.name]
+                                  ? 'bg-red-500/5 border border-red-500/40 focus:border-red-500/60'
+                                  : 'bg-white/[0.04] border border-white/[0.08] focus:border-blue-500/50 focus:bg-white/[0.06]'
+                              }`}
+                            />
+                          </div>
+                          {errors[field.name] && <p className="mt-1 text-xs text-red-400">{errors[field.name]}</p>}
+                        </div>
+                      ))}
+
+                      {/* Email — full width */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                          Email <span className="text-red-400">*</span>
+                        </label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+                          <input
+                            type="email" name="email" value={formData.email} onChange={handleChange} required
+                            placeholder="your@email.com"
+                            className={`w-full pl-9 pr-3 py-2.5 text-sm rounded-xl text-white placeholder-slate-600 focus:outline-none transition-colors ${
+                              errors.email
+                                ? 'bg-red-500/5 border border-red-500/40 focus:border-red-500/60'
+                                : 'bg-white/[0.04] border border-white/[0.08] focus:border-blue-500/50 focus:bg-white/[0.06]'
+                            }`}
+                          />
+                        </div>
+                        {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email}</p>}
+                      </div>
+                    </div>
+
+                    {/* Submit */}
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
+                        isSubmitting
+                          ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-xl shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5'
+                      }`}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Registering Agency...
+                        </>
+                      ) : (
+                        <>
+                          Register Agency
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </form>
                 </div>
-
-                {/* Form Fields Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Your Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Your Name <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <input
-                        type="text"
-                        name="yourName"
-                        value={formData.yourName}
-                        onChange={handleChange}
-                        className={`w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.yourName ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        placeholder="Enter your full name"
-                        required
-                      />
-                    </div>
-                    {errors.yourName && (
-                      <p className="mt-1 text-xs text-red-500">{errors.yourName}</p>
-                    )}
-                  </div>
-
-                  {/* Agency Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Agency Name <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <input
-                        type="text"
-                        name="agencyName"
-                        value={formData.agencyName}
-                        onChange={handleChange}
-                        className={`w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.agencyName ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        placeholder="Enter agency name"
-                        required
-                      />
-                    </div>
-                    {errors.agencyName && (
-                      <p className="mt-1 text-xs text-red-500">{errors.agencyName}</p>
-                    )}
-                  </div>
-
-                  {/* WhatsApp Number */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      WhatsApp Number <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Smartphone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <input
-                        type="tel"
-                        name="whatsappNumber"
-                        value={formData.whatsappNumber}
-                        onChange={handleChange}
-                        className={`w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.whatsappNumber ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        placeholder="e.g., +92 300 1234567"
-                        required
-                      />
-                    </div>
-                    {errors.whatsappNumber && (
-                      <p className="mt-1 text-xs text-red-500">{errors.whatsappNumber}</p>
-                    )}
-                  </div>
-
-                  {/* Phone Number */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Phone Number <span className="text-gray-400 text-xs">(Optional)</span>
-                    </label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <input
-                        type="tel"
-                        name="phoneNumber"
-                        value={formData.phoneNumber}
-                        onChange={handleChange}
-                        className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Same as WhatsApp if left empty"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Email */}
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className={`w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          errors.email ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        placeholder="Enter your email"
-                        required
-                      />
-                    </div>
-                    {errors.email && (
-                      <p className="mt-1 text-xs text-red-500">{errors.email}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold transition ${
-                    isSubmitting 
-                      ? 'opacity-50 cursor-not-allowed' 
-                      : 'hover:bg-blue-700'
-                  }`}
-                >
-                  {isSubmitting ? (
-                    <span className="flex items-center justify-center">
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Processing...
-                    </span>
-                  ) : (
-                    'Register Agency'
-                  )}
-                </button>
-              </form>
+              </motion.div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Animation Styles */}
-      <style jsx>{`
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(50px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-slideUp {
-          animation: slideUp 0.3s ease-out;
-        }
-      `}</style>
-    </>
+        </>
+      )}
+    </AnimatePresence>
   );
-};
-
-export default RegisterPopup;
+}
