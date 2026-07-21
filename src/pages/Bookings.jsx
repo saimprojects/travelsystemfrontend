@@ -461,6 +461,14 @@ const Bookings = () => {
     payload.departure_date = payload.departure_date || null;
     payload.payment_method = payload.payment_method?.trim() || null;
 
+    // Visa/ticket optional fields: empty string -> null (DRF rejects "" for dates)
+    payload.visa_expiry_date = payload.visa_expiry_date || null;
+    payload.visa_notes = payload.visa_notes?.trim() || null;
+    payload.pnr_number = payload.pnr_number?.trim() || null;
+    payload.airline = payload.airline?.trim() || null;
+    payload.flight_from = payload.flight_from?.trim() || null;
+    payload.flight_to = payload.flight_to?.trim() || null;
+
     return payload;
   };
 
@@ -521,7 +529,17 @@ const Bookings = () => {
       fetchInitialData();
     } catch (error) {
       console.error("Error saving booking:", error);
-      const errorMsg = error.response?.data?.detail || "Failed to save booking";
+      const data = error.response?.data;
+      let errorMsg = "Failed to save booking";
+      if (data) {
+        if (typeof data === "string") errorMsg = data;
+        else if (data.detail) errorMsg = data.detail;
+        else {
+          // Show first field validation error, e.g. "visa_expiry_date: Date has wrong format"
+          const [field, msgs] = Object.entries(data)[0] || [];
+          if (field) errorMsg = `${field}: ${Array.isArray(msgs) ? msgs[0] : msgs}`;
+        }
+      }
       toast.error(errorMsg);
     } finally {
       setSubmitting(false);
