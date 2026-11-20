@@ -18,16 +18,30 @@ import Bookings from './pages/Bookings';
 import Onboard from './pages/Onboard';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
+import { featuresMetadata, homepageMetadata, headAttributes } from './featureMetadata';
 
 const LegacyDashboardRedirect = ({ to }) => {
   const { search } = useLocation();
   return <Navigate to={`${to}${search}`} replace />;
 };
 
-const ScrollToTop = () => {
+const RouteEffects = () => {
   const { pathname } = useLocation();
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
+
+    const showingFeatures = pathname.replace(/\/+$/, '') === '/features';
+    const metadata = showingFeatures ? featuresMetadata : homepageMetadata;
+    document.title = metadata.title;
+    for (const [tag, attribute, key, valueAttribute, value] of headAttributes(metadata)) {
+      document.head.querySelector(`${tag}[${attribute}="${key}"]`)?.setAttribute(valueAttribute, value);
+    }
+
+    // Homepage-only structured data is inert while the visitor is on Features.
+    for (const script of document.head.querySelectorAll('script[type="application/ld+json"], script[data-homepage-schema]')) {
+      script.dataset.homepageSchema = 'true';
+      script.type = showingFeatures ? 'application/json' : 'application/ld+json';
+    }
   }, [pathname]);
   return null;
 };
@@ -36,7 +50,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <ScrollToTop />
+        <RouteEffects />
         <Toaster position="top-right" />
         <Routes>
           {/* Public Routes — wrapped in PublicLayout (Navbar + Footer + RegisterPopup) */}

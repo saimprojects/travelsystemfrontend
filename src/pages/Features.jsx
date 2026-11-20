@@ -1,9 +1,8 @@
 import { useOutletContext } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   BarChart3, Globe, FileText, Plane, Users,
   CreditCard, Shield, Zap, CheckCircle, ArrowRight,
-  Settings, TrendingUp, Bell
+  Settings, Bell
 } from 'lucide-react';
 
 const FEATURE_GROUPS = [
@@ -68,8 +67,6 @@ const INTEGRATIONS = [
   { name: 'Cloud Storage', emoji: '☁️' },
 ];
 
-const fadeUp = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0 } };
-
 export default function Features() {
   const { onRegisterOpen } = useOutletContext();
 
@@ -86,14 +83,12 @@ export default function Features() {
           backgroundSize: '72px 72px'
         }} />
         <div className="relative max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+          <div
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-medium mb-6"
           >
             <Zap className="w-3 h-3" /> Full Feature List
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          </div>
+          <h1
             className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-5"
           >
             Powerful Features for
@@ -101,13 +96,12 @@ export default function Features() {
             <span className="bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">
               Modern Travel Agencies
             </span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          </h1>
+          <p
             className="text-slate-400 text-lg max-w-2xl mx-auto"
           >
             Everything you need to run, manage, and scale your travel business — in one integrated platform.
-          </motion.p>
+          </p>
         </div>
       </section>
 
@@ -115,11 +109,9 @@ export default function Features() {
       <section className="pb-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {FEATURE_GROUPS.map((fg, i) => (
-              <motion.div
-                key={i}
-                variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
-                transition={{ delay: (i % 4) * 0.07 }}
+            {FEATURE_GROUPS.map((fg) => (
+              <div
+                key={fg.title}
                 className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6 hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300"
               >
                 <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${fg.gradient} flex items-center justify-center mb-4 shadow-lg`}>
@@ -134,7 +126,7 @@ export default function Features() {
                     </li>
                   ))}
                 </ul>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -143,8 +135,7 @@ export default function Features() {
       {/* Integrations */}
       <section className="py-20 px-4 sm:px-6 border-y border-white/[0.06] bg-white/[0.015]">
         <div className="max-w-5xl mx-auto text-center">
-          <motion.div
-            variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
+          <div
             className="mb-10"
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium mb-4">
@@ -155,18 +146,16 @@ export default function Features() {
               <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent"> Favourite Tools</span>
             </h2>
             <p className="text-slate-400 text-sm">Seamless integrations so your workflow never misses a beat.</p>
-          </motion.div>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {INTEGRATIONS.map((item, i) => (
-              <motion.div
-                key={i}
-                variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
-                transition={{ delay: i * 0.06 }}
+            {INTEGRATIONS.map((item) => (
+              <div
+                key={item.name}
                 className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-4 text-center hover:bg-white/[0.06] transition-colors"
               >
                 <span className="text-2xl mb-2 block">{item.emoji}</span>
                 <span className="text-xs text-slate-400 font-medium">{item.name}</span>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -175,7 +164,7 @@ export default function Features() {
       {/* CTA */}
       <section className="py-24 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto text-center">
-          <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+          <div>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4">
               Ready to Transform
               <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent"> Your Agency?</span>
@@ -188,7 +177,7 @@ export default function Features() {
               Start Free Trial
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
-          </motion.div>
+          </div>
         </div>
       </section>
 
